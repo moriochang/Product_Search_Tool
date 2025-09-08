@@ -86,6 +86,7 @@
     let originalData = [];
 
     const csvData = `manufacture_style,Code,product_name,大分類,中分類,小分類,Remark
+manufacture_style,Code,product_name,大分類,中分類,小分類,Remark
 MC747TA/A,0024810094,45W Magsafe Power MC747,Accy,#Power Adapter,Magsafe,正常品
 MD564FE/A,0024838073,APPLE USB SUPERDRIVE MD564,Accy,*CPU Accy,Super Drive,正常品
 MD592TA/A,0024838077,45W Magsafe 2 Power MD592,Accy,#Power Adapter,Magsafe,正常品
@@ -103,9 +104,9 @@ MWRH2FE/A,0013007914,40 時尚錶帶 黑色L MWRG2,Accy,*Apple Watch Accy,Band 4
 MX432PA/A,0013008675,Beats Solo3 WL 黑 MX432,Audio,Beats,Solo 3,正常品
 MX442PA/A,0013008676,Beats Solo3 WL 玫瑰金 MX442,Audio,Beats,Solo 3,正常品
 MX472PA/A,0013008679,Beats Solo3 WL 紅 MX472,Audio,Beats,Solo 3,正常品
-MWV92FE/A,0013008772,MBP 16" 皮革護套 馬鞍棕 MWV92,Accy,*CPU Accy,MBP 15" Case,正常品
-MWVA2FE/A,0013008773,MBP 16" 皮革護套 黑色 MWVA2,Accy,*CPU Accy,MBP 15" Case,正常品
-MWVC2FE/A,0013008774,MBP 16" 皮革護套 午夜藍 MWVC2,Accy,*CPU Accy,MBP 15" Case,正常品
+MWV92FE/A,0013008772,"MBP 16"" 皮革護套 馬鞍棕 MWV92",Accy,*CPU Accy,"MBP 15"" Case",正常品
+MWVA2FE/A,0013008773,"MBP 16"" 皮革護套 黑色 MWVA2",Accy,*CPU Accy,"MBP 15"" Case",正常品
+MWVC2FE/A,0013008774,"MBP 16"" 皮革護套 午夜藍 MWVC2",Accy,*CPU Accy,"MBP 15"" Case",正常品
 MWUQ2FE/A,0013008784,44mm 運動錶帶 綠玉石 MWUQ2,Accy,*Apple Watch Accy,Band 44mm Sport,正常品
 MXNL2TA/A,0013009230,12.9 6th 聰穎鍵盤 中 MXNL2,Accy,*iPad Accy,12.9 6th Keyboard,正常品
 MXNL2TE/A,0013009231,12.9 6th 聰穎鍵盤 英 MXNL2,Accy,*iPad Accy,12.9 6th Keyboard,正常品
@@ -122,6 +123,26 @@ MXP62FE/A,0013009663,44mm 運動錶帶 岩灰色 MXP62,Accy,*Apple Watch Accy,Ba
 MXP72FE/A,0013009664,44mm 運動錶帶 維他橙 MXP72,Accy,*Apple Watch Accy,Band 44mm Sport,正常品
 MXP82FE/A,0013009665,44mm 運動錶帶 浪花綠 MXP82,Accy,*Apple Watch Accy,Band 44mm Sport,正常品
 MXWR2FE/A,0013009666,44mm 運動錶帶 亞麻藍 MXWR2,Accy,*Apple Watch Accy,Band 44mm Sport,正常品
+2000130096759,0013009675,[i]Care iPhone SE 一年期_1690,Care,iCPP,[i]Care iPhone SE 一年期_1690,正常品
+2000130096766,0013009676,[i]Care iPhone 8 一年期_2590,Care,iCPP,[i]Care iPhone 8 一年期_2590,正常品
+2000130096773,0013009677,[i]Care iPhone 一年期_3290,Care,iCPP,[i]Care iPhone 13/13m/14/15 一年期_3290,正常品
+2000130096780,0013009678,[i]Care iPhone 一年期_4390,Care,iCPP,[i]Care iPhone XS-15PM 一年期_4390,正常品
+2000130096797,0013009679,[i]Care iPhone SE 兩年期_2590,Care,iCPP,[i]Care iPhone SE 兩年期_2590,正常品
+2000130096803,0013009680,[i]Care iPhone 兩年期_4890,Care,iCPP,[i]Care iPhone 13/13m/14/15 兩年期_4890,正常品
+2000130096810,0013009681,[i]Care iPhone 兩年期_6390,Care,iCPP,[i]Care iPhone XS-15PM 兩年期_6390,正常品
+2000130096827,0013009682,[i]Care iPad M/A 一年期_1590,Care,iCPP,[i]Care iPad Mini/Air 一年期_1590,正常品
+2000130096834,0013009683,[i]Care iPad M/A 兩年期_2190,Care,iCPP,[i]Care iPad Mini/Air 兩年期_2190,正常品
+2000130096841 ,0013009684,[i]Care EOL iPad Pro 一年_2590,Care,iCPP,[i]Care EOL iPad Pro 一年期_2590,正常品
+2000130096858 ,0013009685,[i]Care EOL iPad Pro 兩年_4300,Care,iCPP,[i]Care EOL iPad Pro 兩年期_4300,正常品
+2000130096865 ,0013009686,[i]Care AW S8/S9 一年期_1690,Care,iCPP,[i]Care AW S8/S9 一年期_1690,正常品
+2000130096872 ,0013009687,[i]Care AW S8/S9 兩年期_2590,Care,iCPP,[i]Care AW S8/S9 兩年期_2590,正常品
+2000130096889 ,0013009688,[i]Care AirPods 一年期_790,Care,iCPP,[i]Care AirPods 2/3/Pro 一年期_790,正常品
+2000130096896 ,0013009689,[i]Care AirPods 兩年期_1000,Care,iCPP,[i]Care AirPods 2/3/Pro 兩年期_1000,正常品
+2000130096902,0013009690,[i]Care MBA 一年期_4350,Care,iCPP,[i]Care MBA 一年期_4350,正常品
+2000130096919,0013009691,[i]Care M MBP 14 一年期_5090,Care,iCPP,[i]Care M1-M3 MBP 14 一年期_5090,正常品
+2000130096926,0013009692,[i]Care M MBP 16 一年期_6990,Care,iCPP,[i]Care M1-M3 MBP 16 一年期_6990,正常品
+2000130096940,0013009694,[i]Care M MBP 14 三年期_8990,Care,iCPP,[i]Care M1-M3 MBP 14 三年期_8990,正常品
+2000130096957,0013009695,[i]Care M MBP 16 三年期_12990,Care,iCPP,[i]Care M1-M3 MBP 16 三年期_12990,正常品
 MGN03TA/A,0013015730,12W USB Power Adapter MGN03,Accy,#Power Adapter,USB-A,正常品
 MG3W3FE/A,0013016500,44 N 運動錶帶 灰霧綠 MG3W3,Accy,*Apple Watch Accy,Band 44mm Nike Sport,正常品
 MG433FE/A,0013016515,44mm 運動錶帶 賽勒綠 MG433,Accy,*Apple Watch Accy,Band 44mm Sport,正常品
@@ -158,6 +179,8 @@ S8678ZX/A,0013016603,AC+ for AW S6 S8678,Care,ACPP+,AW S6 ACPP+,正常品
 S8679ZX/A,0013016604,AC+ for AW Nike S6 S8679,Care,ACPP+,AW Nike S6 ACPP+,正常品
 S8717ZX/A,0013016605,AC+ for AW S6 不鏽鋼 S8717,Care,ACPP+,AW S6 不鏽鋼 ACPP+,正常品
 S8718ZX/A,0013016606,AC+ for AW S6 鈦金屬 S8718,Care,ACPP+,AW Edition S6 鈦金屬 ACPP+,正常品
+2000130166148,0013016614,[i]Care AW SE 一年期_1290,Care,iCPP,[i]Care AW SE 一年期_1290,正常品
+2000130166155,0013016615,[i]Care AW SE 兩年期_1690,Care,iCPP,[i]Care AW SE 兩年期_1690,正常品
 MHLP3FE/A,0013016723,MagSafe 皮革卡套 罌粟 MHLP3,Accy,*iPhone Accy,MagSafe,正常品
 MHLQ3FE/A,0013016724,MagSafe 皮革卡套 海藍 MHLQ3,Accy,*iPhone Accy,MagSafe,正常品
 MHLR3FE/A,0013016725,MagSafe 皮革卡套 棕 MHLR3,Accy,*iPhone Accy,MagSafe,正常品
@@ -166,7 +189,6 @@ MYMC2ZP/A,0013016755,Beats Flex 入耳 黑紅 MYMC2,Audio,Beats,Beats Flex,正�
 MYMD2ZP/A,0013016756,Beats Flex 入耳 柚黃 MYMD2,Audio,Beats,Beats Flex,正常品
 MY5G2TA/A,0013016757,HomePod mini 灰 MY5G2,Audio,HomePod,HomePod mini 灰,正常品
 MY5H2TA/A,0013016758,HomePod mini 白 MY5H2,Audio,HomePod,HomePod mini 白,正常品
-3G956TA/A,0013016796,3G956 HomePod mini 白,Audio,HomePod,HomePod mini 白,Demo
 S8930ZX/A,0013016806,AC+ for iPhone 12 mini S8930,Care,ACPP+,iPhone 12 mini ACPP+,正常品
 S8945ZX/A,0013016807,AC+ for iPhone 12 S8945,Care,ACPP+,iPhone 12 ACPP+,正常品
 S8963ZX/A,0013016808,AC+ for iPhone 12 Pro S8963,Care,ACPP+,iPhone 12 Pro ACPP+,正常品
@@ -179,7 +201,21 @@ S9086ZX/A,0013017822,AC+ for AirPods Max S9086,Care,ACPP+,AirPods ACPP+,正常�
 S9066ZX/A,0013017823,AC+ for AirPods S9066,Care,ACPP+,AirPods ACPP+,正常品
 S9078ZX/A,0013017824,AC+ for AirPods Pro S9078,Care,ACPP+,AirPods ACPP+,正常品
 S9094ZX/A,0013017825,AC+ for Beats S9094,Care,ACPP+,Beats ACPP+,正常品
+2000130179483,0013017948,[i]Care AirPods Max 一年_1290,Care,iCPP,[i]Care AirPods Max 一年期_1290,正常品
+2000130179490,0013017949,[i]Care AirPods Max 兩年_1700,Care,iCPP,[i]Care AirPods Max 兩年期_1700,正常品
 MY592TA/A,0013017952,Beats Powerbeats Pro 海軍藍 MY592,Audio,Beats,Powerbeats Pro,正常品
+2000130180915,0013018091,[i]Care iPhone SE 續保_1690,Care,iCPP,[i]Care iPhone SE 續保一年期_1690,正常品
+2000130180922,0013018092,[i]Care iPhone 續保_3290,Care,iCPP,[i]Care iPhone 12/13/13m/14 續保一年期_3290,正常品
+2000130180939,0013018093,[i]Care iPhone 續保_4390,Care,iCPP,[i]Care iPhone XS-14PM 續保一年期_4390,正常品
+2000130180946,0013018094,[i]Care iPad M/A 續保_1590,Care,iCPP,[i]Care iPad Mini/Air 續保一年期_1590,正常品
+2000130180953,0013018095,[i]Care iPad Pro 續保_2590,Care,iCPP,[i]Care iPad Pro 續保一年期_2590,正常品
+2000130180960,0013018096,[i]Care AW SE 續保_1290,Care,iCPP,[i]Care AW SE 續保一年期_1290,正常品
+2000130180977,0013018097,[i]Care AW S7/S8 續保_1690,Care,iCPP,[i]Care AW S7/S8 續保一年期_1690,正常品
+2000130180984,0013018098,[i]Care AirPods 續保_790,Care,iCPP,[i]Care AirPods 2/3/Pro 續保一年期_790,正常品
+2000130180991,0013018099,[i]Care AirPods Max 續保_1290,Care,iCPP,[i]Care AirPods Max 續保一年期_1290,正常品
+2000130181004,0013018100,[i]Care MBA 續保_4350,Care,iCPP,[i]Care MBA 續保一年期_4350,正常品
+2000130181011,0013018101,[i]Care MBP 13/14 續保_5090,Care,iCPP,[i]Care MBP 13/14 續保一年期_5090,正常品
+2000130181028,0013018102,[i]Care MBP 15/16 續保_6990,Care,iCPP,[i]Care MBP 15/16 續保一年期_6990,正常品
 MK0E3FE/A,0013018201,MagSafe 皮革卡套 桑紅 MK0E3,Accy,*iPhone Accy,MagSafe,正常品
 MX532FE/A,0013018202,AirTag 一入 MX532,Accy,*iPhone Accy,AirTag 一入,正常品
 MX542FE/A,0013018203,AirTag 四入 MX542,Accy,*iPhone Accy,AirTag 四入,正常品
@@ -230,6 +266,8 @@ S9764ZX/A,0013018533,AC+ for MBP 13 Intel S9764,Care,ACPP+,13 MacBook Pro ACPP+,
 S9736ZX/A,0013018534,AC+ for MBP 13 M1 S9736,Care,ACPP+,13 MacBook Pro ACPP+,正常品
 S9775ZX/A,0013018536,AC+ for MBP 16 Intel S9775,Care,ACPP+,16 MacBook Pro ACPP+,正常品
 S9742ZX/A,0013018537,AC+ for Pro Display S9742,Care,ACPP+,Display ACPP+,正常品
+2000130185989,0013018598,[i]Care MBA 三年期_5490,Care,iCPP,[i]Care M1/M2 MBA 三年期_5490,正常品
+2000130185996,0013018599,[i]Care M MBP 13 三年期_7490,Care,iCPP,[i]Care M1/M2 MBP 三年期_7490,正常品
 MLYX3FE/A,0013018627,AirTag 掛環 卡布藍 MLYX3,Accy,*iPhone Accy,AirTag Accy,正常品
 MM003FE/A,0013018629,AirTag 皮掛環 檸檬 MM003,Accy,*iPhone Accy,AirTag Accy,正常品
 MM043FE/A,0013018632,AirTag 皮掛環 海藍 MM043,Accy,*iPhone Accy,AirTag Accy,正常品
@@ -256,17 +294,15 @@ MM6K3FE/A,0013019029,iPad Mini 6th Case 櫻桃 MM6K3,Accy,iPad Case,iPad Mini,�
 MM6L3FE/A,0013019030,iPad Mini 6th Case 薰衣 MM6L3,Accy,iPad Case,iPad Mini,正常品
 MM6N3FE/A,0013019032,iPad Pro 11 Case 薰衣草 MM6N3,Accy,iPad Case,iPad Pro 11,正常品
 MM6P3FE/A,0013019033,iPad Pro 12.9 Case 薰衣草 MM6P3,Accy,iPad Case,iPad Pro 12.9,正常品
+2000130199078,0013019907,[i]Care iPhone SE 意外保_1080,Care,iCPP,[i]Care iPhone SE 意外保_1080,正常品
+2000130199085,0013019908,[i]Care iPhone 7/8 意外保_1480,Care,iCPP,[i]Care iPhone 7/8 意外保_1480,正常品
+2000130199092,0013019909,[i]Care iPhone 意外保_1880,Care,iCPP,[i]Care iPhone 7+~13m 意外保_1880,正常品
+2000130199108,0013019910,[i]Care iPhone 意外保_2480,Care,iCPP,[i]Care iPhone XS~13PM 意外保_2480,正常品
 SCCU2ZX/A,0013020011,AC+ for AW S7 SCCU2,Care,ACPP+,AW S7 ACPP+,正常品
 SCCV2ZX/A,0013020012,AC+ for AW Nike S7 SCCV2,Care,ACPP+,AW Nike S7 ACPP+,正常品
 SCCW2ZX/A,0013020013,AC+ for AW S7 不鏽鋼 SCCW2,Care,ACPP+,AW S7 不鏽鋼 ACPP+,正常品
 SCCX2ZX/A,0013020014,AC+ for AW S7 鈦金屬 SCCX2,Care,ACPP+,AW Edition S7 鈦金屬 ACPP+,正常品
 SCCY2ZX/A,0013020015,AC+ for AW S7 Hermes SCCY2,Care,ACPP+,AW Hermes S7 ACPP+,正常品
-3J599FE/A,0013020027,3J599 41 星光 運動錶帶,Accy,*Apple Watch Accy,Band 41mm Sport,Demo
-3J600FE/A,0013020028,3J600 41 紅色 運動錶帶,Accy,*Apple Watch Accy,Band 41mm Sport,Demo
-3J605FE/A,0013020029,3J605 45 三葉草 運動錶帶,Accy,*Apple Watch Accy,Band 45mm Sport,Demo
-3J606FE/A,0013020030,3J606 45 午夜 運動錶帶,Accy,*Apple Watch Accy,Band 45mm Sport,Demo
-3J609FE/A,0013020032,3J609 45 深淵藍 運動錶帶,Accy,*Apple Watch Accy,Band 45mm Sport,Demo
-3J695FE/A,0013020033,3J695 41 N 白黑 運動錶帶,Accy,*Apple Watch Accy,Band 41mm Nike Sport,Demo
 MJ2C3TA/A,0013020088,HomePod mini 藍 MJ2C3,Audio,HomePod,HomePod mini 藍,正常品
 MJ2D3TA/A,0013020089,HomePod mini 橘 MJ2D3,Audio,HomePod,HomePod mini 橘,正常品
 MJ2E3TA/A,0013020090,HomePod mini 黃 MJ2E3,Audio,HomePod,HomePod mini 黃,正常品
@@ -276,7 +312,7 @@ MK2F3TA/A,0013020605,Beats Fit Pro 黑 MK2F3,Audio,Beats,Fit Pro,正常品
 MK2G3TA/A,0013020606,Beats Fit Pro 白 MK2G3,Audio,Beats,Fit Pro,正常品
 MK2H3TA/A,0013020607,Beats Fit Pro 紫 MK2H3,Audio,Beats,Fit Pro,正常品
 MK2J3TA/A,0013020608,Beats Fit Pro 灰 MK2J3,Audio,Beats,Fit Pro,正常品
-Z14Y,0013020711,M1P 21 MBP 16" 512 銀 Z14Y,CPU,MACBOOK PRO 16,MacBook Pro M1Pro CTO,正常品
+Z14Y,0013020711,"M1P 21 MBP 16"" 512 銀 Z14Y",CPU,MACBOOK PRO 16,MacBook Pro M1Pro CTO,正常品
 SEJD2ZX/A,0013020820,AC+ for iPad Air 5 SEJD2,Care,ACPP+,iPad Air 5 ACPP+,正常品
 SEH92ZX/A,0013020821,AC+ for iPhone SE 3 SEH92,Care,ACPP+,iPhone SE 3 ACPP+,正常品
 SELQ2ZX/A,0013020822,AC+ for Mac Studio SELQ2,Care,ACPP+,Mac Studio ACPP+,正常品
@@ -284,6 +320,9 @@ SEL02ZX/A,0013020823,AC+ for Studio Display SEL02,Care,ACPP+,Studio Display ACPP
 MNA43FE/A,0013020824,iPad Air 5 Case 暗櫻桃 MNA43,Accy,iPad Case,iPad Air 10.9,正常品
 MNA63FE/A,0013020825,iPad Air 5 Case 薰衣草 MNA63,Accy,iPad Case,iPad Air 10.9,正常品
 MNA73FE/A,0013020826,iPad Air 5 Case 海藍 MNA73,Accy,iPad Case,iPad Air 10.9,正常品
+2000130209210,0013020921,[i]Care iPad Air 5 一年期_1890,Care,iCPP,[i]Care iPad Air 5 一年期_1890,正常品
+2000130209227,0013020922,[i]Care iPad Air 5 兩年期_2590,Care,iCPP,[i]Care iPad Air 5 兩年期_2590,正常品
+2000130209234,0013020923,[i]Care iPad Air 5 續保_1890,Care,iCPP,[i]Care iPad Air 5 續保一年期_1890,正常品
 MMT73TA/A,0013020948,Beats Studio Buds 無線藍 MMT73,Audio,Beats,Studio Buds,正常品
 MMT83TA/A,0013020949,Beats Studio Buds 無線粉 MMT83,Audio,Beats,Studio Buds,正常品
 MMT93TA/A,0013020950,Beats Studio Buds 無線灰 MMT93,Audio,Beats,Studio Buds,正常品
@@ -291,8 +330,7 @@ MN6M3FE/A,0013021295,41mm N 運動錶環 彩虹 MN6M3,Accy,*Apple Watch Accy,Ban
 MN6N3FE/A,0013021296,45mm N 運動錶環 彩虹 MN6N3,Accy,*Apple Watch Accy,Band 45mm Nike Sport,正常品
 SF8C2ZX/A,0013021306,AC+ for MBA 13 M2 SF8C2,Care,ACPP+,13 MacBook Air ACPP+,正常品
 SF932ZX/A,0013021307,AC+ for MBP 13 M2 SF932,Care,ACPP+,13 MacBook Pro ACPP+,正常品
-3K596TA/A,0013021632,3K596 AW SE 40 星鋁,Apple Watch,SE 2-GPS,40MM Sports,Demo
-3K789TA/A,0013021636,3K789 AW SE 4G 44 午鋁,Apple Watch,SE 2-Cell,44MM Sports,Demo
+2000130213668 ,0013021366,[i]Care M3 MBA 三年期_6290,Care,iCPP,[i]Care M3 MBA 三年期_6290,正常品
 MPU73FE/A,0013021701,iPhone 14 PM 透明 MPU73,Accy,iPhone Case,iPhone 14 Pro Max,正常品
 MQE93FE/A,0013021756,49 海洋錶帶 白色 MQE93,Accy,*Apple Watch Accy,Band 49mm Ocean Band,正常品
 MQEA3FE/A,0013021757,49 海洋錶帶 白 加長節 MQEA3,Accy,*Apple Watch Accy,Band 49mm Ocean Band,正常品
@@ -305,6 +343,10 @@ SG1Y2TA/A,0013021789,AC+ for AW Hermes SG1Y2,Care,ACPP+,AW Hermes S8 ACPP+,正�
 SG282TA/A,0013021790,AC+ for AW SE 2 SG282,Care,ACPP+,AW SE 2 ACPP+,正常品
 SG2L2TA/A,0013021791,AC+ for AW S8 不鏽鋼 SG2L2,Care,ACPP+,AW S8 不鏽鋼 ACPP+,正常品
 SG2U2TA/A,0013021792,AC+ for AW Ultra SG2U2,Care,ACPP+,AW Ultra ACPP+,正常品
+2000130226514 ,0013022651,[i]Care 14/15 Plus 一年期_4290,Care,iCPP,[i]Care 14/15 Plus 一年期_4290,正常品
+2000130226521 ,0013022652,[i]Care 14/15 Plus 兩年期_5790,Care,iCPP,[i]Care 14/15 Plus 兩年期_5790,正常品
+2000130226545 ,0013022654,[i]Care AW Ultra 一年期_2290,Care,iCPP,[i]Care AW Ultra 一年期_2290,正常品
+2000130226552 ,0013022655,[i]Care AW Ultra 兩年期_3190,Care,iCPP,[i]Care AW Ultra 兩年期_3190,正常品
 MN873TA/A,0013022823,Apple TV 4K WiFi 64 MN873,Accy,Apple TV,Apple TV 4K 64G,正常品
 MN893TA/A,0013022824,Apple TV 4K 乙太 128 MN893,Accy,Apple TV,Apple TV 4K 128G,正常品
 MQDP3TA/A,0013022826,iPad 10th 巧控鍵盤 中 MQDP3,Accy,*iPad Accy,10.9 Keyboard,正常品
@@ -315,13 +357,13 @@ Z14J,0013023194,Mac Studio M1M 1T Z14J,CPU,MAC STUDIO,Mac Studio M1M 1T,正常�
 SGAQ2TA/A,0013023240,AC+ for MBP 14 M2 SGAQ2,Care,ACPP+,14 MacBook Pro ACPP+,正常品
 SGCT2TA/A,0013023241,AC+ for MBP 16 M2 SGCT2,Care,ACPP+,16 MacBook Pro ACPP+,正常品
 SGQQ2TA/A,0013023242,AC+ for Mac mini M2 SGQQ2,Care,ACPP+,Mac mini ACPP+,正常品
-3K904TA/A,0013023321,教 3K904 iPad Pro 13 WF 128 灰,iPad,iPad Pro 13in 6,Wi-Fi iPad Pro 12.9 灰,Demo
 MQLH3TA/A,0013023569,Beats Studio Buds 黑金 MQLH3,Audio,Beats,Studio Buds,正常品
 MQLJ3TA/A,0013023570,Beats Studio Buds 象牙白 MQLJ3,Audio,Beats,Studio Buds,正常品
 MQLK3TA/A,0013023571,Beats Studio Buds 透明 MQLK3,Audio,Beats,Studio Buds,正常品
 SJFY2TA/A,0013023743,AC+ for MBA 15 M2 SJFY2,Care,ACPP+,15 MacBook Air ACPP+,正常品
 SJGC2TA/A,0013023744,AC+ for Mac Studio M2 SJGC2,Care,ACPP+,Mac Studio ACPP+,正常品
 SJGQ2TA/A,0013023745,AC+ for Mac Pro M2 SJGQ2,Care,ACPP+,Mac Pro ACPP+,正常品
+2000130237756,0013023775,[i]Care M MBA 15 三年期_7290,Care,iCPP,[i]Care M2/M3 MBA 15 三年期_7290,正常品
 MQTP3ZP/A,0013023788,Beats Studio Pro WL 黑 MQTP3,Audio,Beats,Studio Pro,正常品
 MQTQ3ZP/A,0013023789,Beats Studio Pro WL 藍 MQTQ3,Audio,Beats,Studio Pro,正常品
 MQTR3ZP/A,0013023790,Beats Studio Pro WL 白 MQTR3,Audio,Beats,Studio Pro,正常品
@@ -380,14 +422,12 @@ MT4Q3FE/A,0013025192,iPhone 15 P 織紋殼 海藍 MT4Q3,Accy,iPhone Case,iPhone 
 MT4V3FE/A,0013025194,iPhone 15 PM 織紋殼 黑色 MT4V3,Accy,iPhone Case,iPhone 15 Pro Max,正常品
 MT4W3FE/A,0013025195,iPhone 15 PM 織紋殼 淺褐 MT4W3,Accy,iPhone Case,iPhone 15 Pro Max,正常品
 MUQX3FE/A,0013025201,USB-C to L 轉接器 MUQX3,Accy,#Connector,USB-C,正常品
-MTJV3TA/A,0013025202,AirPods Pro 第二代 USB‑C MTJV3,AirPods,AirPods Pro 2 (USB-C),AirPods Pro 第二代,正常品
+MTJV3TA/A,0013025202,AirPods Pro 第二代 USB_C MTJV3,AirPods,AirPods Pro 2 (USB-C),AirPods Pro 第二代,正常品
 MT2H3FE/A,0013025204,AirTag 織紋鑰匙圈 黑色 MT2H3,Accy,*iPhone Accy,AirTag Accy,正常品
 MT2J3FE/A,0013025205,AirTag 織紋鑰匙圈 桑椹 MT2J3,Accy,*iPhone Accy,AirTag Accy,正常品
 MT2K3FE/A,0013025206,AirTag 織紋鑰匙圈 海藍 MT2K3,Accy,*iPhone Accy,AirTag Accy,正常品
 MT2L3FE/A,0013025207,AirTag 織紋鑰匙圈 淺褐色 MT2L3,Accy,*iPhone Accy,AirTag Accy,正常品
 MT2M3FE/A,0013025208,AirTag 織紋鑰匙圈 珊瑚色 MT2M3,Accy,*iPhone Accy,AirTag Accy,正常品
-3M425ZP/A,0013025211,3M425 iPhone 15 128GB 藍,iPhone,iPhone 15,iPhone 15 藍,Demo
-3M462ZP/A,0013025215,3M462 iPhone 15+ 128GB 黑色,iPhone,iPhone 15+,iPhone 15+ 黑,Demo
 MT5N3FE/A,0013025269,49mm 高山錶環 靛青 S MT5N3,Accy,*Apple Watch Accy,Band 49mm Alpine Loop,正常品
 MT5Q3FE/A,0013025270,49mm 高山錶環 靛青 M MT5Q3,Accy,*Apple Watch Accy,Band 49mm Alpine Loop,正常品
 MT5R3FE/A,0013025271,49mm 高山錶環 靛青 L MT5R3,Accy,*Apple Watch Accy,Band 49mm Alpine Loop,正常品
@@ -428,13 +468,12 @@ MUVE3FE/A,0013025359,45 N 運動錶帶 橙粉色 S/M MUVE3,Accy,*Apple Watch Acc
 MUVF3FE/A,0013025360,45 N 運動錶帶 橙粉色 M/L MUVF3,Accy,*Apple Watch Accy,Band 45mm Nike Sport,正常品
 SJXC2TA/A,0013025361,AC+ for AW S9 SJXC2,Care,ACPP+,AW S9 ACPP+,正常品
 SJXD2TA/A,0013025362,AC+ for AW Ultra 2 SJXD2,Care,ACPP+,AW Ultra ACPP+,正常品
-SJXE2TA/A,0013025363,AC+ for AW Hermès S9 SJXE2,Care,ACPP+,AW Hermes S9 ACPP+,正常品
+SJXE2TA/A,0013025363,AC+ for AW Herm_s S9 SJXE2,Care,ACPP+,AW Hermes S9 ACPP+,正常品
 SJY32TA/A,0013025364,AC+ for AW S9 不鏽鋼 SJY32,Care,ACPP+,AW S9 不鏽鋼 ACPP+,正常品
 SJRQ2TA/A,0013025365,AC+ for iPhone 15 SJRQ2,Care,ACPP+,iPhone 15 ACPP+,正常品
 SJT42TA/A,0013025366,AC+ for iPhone 15 Plus SJT42,Care,ACPP+,iPhone 15 Plus ACPP+,正常品
 SJT92TA/A,0013025367,AC+ for iPhone 15 Pro SJT92,Care,ACPP+,iPhone 15 Pro ACPP+,正常品
 SJTJ2TA/A,0013025368,AC+ for iPhone 15 PM SJTJ2,Care,ACPP+,iPhone 15 PM ACPP+,正常品
-3M580TA/A,0013025373,3M580 AW Ultra 49 越綠灰環 S/M,Apple Watch,Ultra 2,49MM Loop,Demo
 MUWA3TA/A,0013025609,Apple Pencil USB-C MUWA3,Accy,*iPad Accy,Apple Pencil,正常品
 MT0H3TA/A,0013025673,AW USB-C 磁性快充線 1m MT0H3,Accy,#Cable,Apple Watch,正常品
 SL9K2TA/A,0013025704,AC+ for MBP 14 M3 SL9K2,Care,ACPP+,14 MacBook Pro ACPP+,正常品
@@ -530,10 +569,6 @@ MWR03TA/A,0013026365,Pro 11 M4 巧控鍵盤 白 MWR03,Accy,*iPad Accy,11 5th Key
 MWR23TA/A,0013026366,Pro 11 M4 巧控鍵盤 黑 MWR23,Accy,*iPad Accy,11 5th Keyboard,正常品
 MWR43TA/A,0013026367,Pro 13 M4 巧控鍵盤 白 MWR43,Accy,*iPad Accy,12.9 7th Keyboard,正常品
 MWR53TA/A,0013026368,Pro 13 M4 巧控鍵盤 黑 MWR53,Accy,*iPad Accy,12.9 7th Keyboard,正常品
-3M772TA/A,0013026375,3M772 iPad Pro 11 WF 256 黑,iPad,iPad Pro 11(M4),Wi-Fi iPad Pro 11 黑,Demo
-3M773TA/A,0013026376,3M773 iPad Pro 11 WF 256 銀,iPad,iPad Pro 11(M4),Wi-Fi iPad Pro 11 銀,Demo
-3M780TA/A,0013026377,3M780 iPad Pro 13 WF 256 黑,iPad,iPad Pro 13(M4),Wi-Fi iPad Pro 13 黑,Demo
-3M781TA/A,0013026378,3M781 iPad Pro 13 WF 256 銀,iPad,iPad Pro 13(M4),Wi-Fi iPad Pro 13 銀,Demo
 SM2A2TA/A,0013026384,AC+ for iPad Air 13 1 SM2A2,Care,ACPP+,iPad Air 13 1th ACPP+,正常品
 SM2V2TA/A,0013026385,AC+ for iPad Air 11 4 SM2V2,Care,ACPP+,iPad Air 11 4th ACPP+,正常品
 SM2W2TA/A,0013026386,AC+ for iPad Pro 13 7 SM2W2,Care,ACPP+,iPad Pro 13 7th ACPP+,正常品
@@ -541,6 +576,12 @@ SM2X2TA/A,0013026387,AC+ for iPad Pro 11 5 SM2X2,Care,ACPP+,iPad Pro 11 5th ACPP
 MW443ZP/A,0013026478,Beats Pill 黑 MW443,Audio,Beats,Pill,正常品
 MW463ZP/A,0013026479,Beats Pill 金 MW463,Audio,Beats,Pill,正常品
 MWQW3ZP/A,0013026480,Beats Pill 紅 MWQW3,Audio,Beats,Pill,正常品
+2000130264820,0013026482,[i]Care iPad Air 13 一年_2090,Care,iCPP,[i]Care iPad Air 13 一年期_2090,正常品
+2000130264837,0013026483,[i]Care iPad Air 13 兩年_3290,Care,iCPP,[i]Care iPad Air 13 兩年期_3290,正常品
+2000130264844,0013026484,[i]Care iPad Pro 11 一年_3190,Care,iCPP,[i]Care iPad Pro 11 5 一年期_3190,正常品
+2000130264851,0013026485,[i]Care iPad Pro 11 兩年_4890,Care,iCPP,[i]Care iPad Pro 11 5 兩年期_4890,正常品
+2000130264868,0013026486,[i]Care iPad Pro 13 一年_3390,Care,iCPP,[i]Care iPad Pro 13 7 一年期_3390,正常品
+2000130264875,0013026487,[i]Care iPad Pro 13 兩年_5590,Care,iCPP,[i]Care iPad Pro 13 7 兩年期_5590,正常品
 MW2P3FE/A,0013026707,Lightning Digital AV MW2P3,Accy,#Connector,Lightning,正常品
 MW2Q3FE/A,0013026708,USB-C to 3.5mm 孔 轉接器 MW2Q3,Accy,EarPhone,3.5mm,正常品
 MW2R3ZA/A,0013026709,USB-C to Lightning 2m MW2R3,Accy,#Cable,USB-C to Lightning,正常品
@@ -727,29 +768,6 @@ MX5R3TA/A,0013027526,AW Ultra 原鈦/原米蘭環 M MX5R3,Apple Watch,Ultra 2,49
 MX5T3TA/A,0013027527,AW Ultra 原鈦/原米蘭環 L MX5T3,Apple Watch,Ultra 2,49MM 不鏽鋼,正常品
 MX5U3TA/A,0013027528,AW Ultra 黑鈦/黑米蘭環 M MX5U3,Apple Watch,Ultra 2,49MM 不鏽鋼,正常品
 MX5V3TA/A,0013027529,AW Ultra 黑鈦/黑米蘭環 L MX5V3,Apple Watch,Ultra 2,49MM 不鏽鋼,正常品
-3N396ZP/A,0013027530,3N396 iPhone 16 128GB 黑,iPhone,iPhone 16,iPhone 16 黑,Demo
-3N397ZP/A,0013027531,3N397 iPhone 16 128GB 白,iPhone,iPhone 16,iPhone 16 白,Demo
-3N398ZP/A,0013027532,3N398 iPhone 16 128GB 粉,iPhone,iPhone 16,iPhone 16 粉,Demo
-3N399ZP/A,0013027533,3N399 iPhone 16 128GB 藍,iPhone,iPhone 16,iPhone 16 藍,Demo
-3N400ZP/A,0013027534,3N400 iPhone 16 128GB 綠,iPhone,iPhone 16,iPhone 16 綠,Demo
-3N348ZP/A,0013027535,3N348 iPhone 16+ 128GB 黑,iPhone,iPhone 16+,iPhone 16+ 黑,Demo
-3N349ZP/A,0013027536,3N349 iPhone 16+ 128GB 白,iPhone,iPhone 16+,iPhone 16+ 白,Demo
-3N350ZP/A,0013027537,3N350 iPhone 16+ 128GB 粉,iPhone,iPhone 16+,iPhone 16+ 粉,Demo
-3N351ZP/A,0013027538,3N351 iPhone 16+ 128GB 藍,iPhone,iPhone 16+,iPhone 16+ 藍,Demo
-3N352ZP/A,0013027539,3N352 iPhone 16+ 128GB 綠,iPhone,iPhone 16+,iPhone 16+ 綠,Demo
-3N751ZP/A,0013027540,3N751 iPhone 16 Pro 256GB 黑色,iPhone,iPhone 16 Pro,iPhone 16 Pro 黑,Demo
-3N752ZP/A,0013027541,3N752 iPhone 16 Pro 256GB 白色,iPhone,iPhone 16 Pro,iPhone 16 Pro 白,Demo
-3N753ZP/A,0013027542,3N753 iPhone 16 Pro 256GB 沙色,iPhone,iPhone 16 Pro,iPhone 16 Pro 沙,Demo
-3N754ZP/A,0013027543,3N754 iPhone 16 Pro 256GB 原色,iPhone,iPhone 16 Pro,iPhone 16 Pro 原,Demo
-3N532ZP/A,0013027544,3N532 iPhone 16 PM 256GB 黑色,iPhone,iPhone 16 Pro Max,iPhone 16 Pro Max 黑,Demo
-3N533ZP/A,0013027545,3N533 iPhone 16 PM 256GB 白色,iPhone,iPhone 16 Pro Max,iPhone 16 Pro Max 白,Demo
-3N534ZP/A,0013027546,3N534 iPhone 16 PM 256GB 沙色,iPhone,iPhone 16 Pro Max,iPhone 16 Pro Max 沙,Demo
-3N535ZP/A,0013027547,3N535 iPhone 16 PM 256GB 原色,iPhone,iPhone 16 Pro Max,iPhone 16 Pro Max 原,Demo
-3N492TA/A,0013027548,3N492 AW S10 42 金鋁/梅李環,Apple Watch,S10-GPS,42MM Sports,Demo
-3N498TA/A,0013027549,3N498 AW S10 46 黑鋁/墨水環,Apple Watch,S10-GPS,46MM Sports,Demo
-3N499TA/A,0013027550,3N499 AW S10 46 金鋁/胭粉帶,Apple Watch,S10-GPS,46MM Sports,Demo
-3N459TA/A,0013027551,3N459 AW Ultra 黑鈦/高山黑,Apple Watch,Ultra 2,49MM Loop,Demo
-3N457TA/A,0013027552,3N457 AW Ultra 黑鈦/海洋黑,Apple Watch,Ultra 2,49MM Loop,Demo
 MXTW3FE/A,0013027554,49mm 越野錶環藍 M/L MXTW3,Accy,*Apple Watch Accy,Band 45mm Sport,正常品
 MCFC4PA/A,0013027555,Beats iPhone 16 磁吸殼 午夜黑,Accy,iPhone Case,iPhone 16,正常品
 MCFE4PA/A,0013027556,Beats iPhone 16 磁吸殼 波濤藍,Accy,iPhone Case,iPhone 16,正常品
@@ -805,7 +823,6 @@ MA6Y4FE/A,0013027609,MagSafe 皮革卡套 深綠 MA6Y4,Accy,*iPhone Accy,MagSafe
 MA6X4FE/A,0013027610,MagSafe 皮革卡套 藍色 MA6X4,Accy,*iPhone Accy,MagSafe,正常品
 MX6X3TA/A,0013027611,MagSafe 充電器 1M MX6X3,Accy,#Cable,MagSafe,正常品
 MX6Y3TA/A,0013027612,MagSafe 充電器 2M MX6Y3,Accy,#Cable,MagSafe,正常品
-3N496TA/A,0013027613,3N496 AW 10 46 曜石黑鋁/黑帶,Apple Watch,S10-GPS,46MM Sports,Demo
 MAX94FE/A,0013027618,40mm 運動錶帶 黑色 S/M MAX94,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
 MAXA4FE/A,0013027619,40mm 運動錶帶 黑色 M/L MAXA4,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
 MAXC4FE/A,0013027620,40mm 運動錶帶 胭脂粉 S/M MAXC4,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
@@ -970,7 +987,7 @@ MWW53TA/A,0013027953,AirPods Max 星光 MWW53,AirPods,AirPods Max (USB-C),AirPod
 MWW63TA/A,0013027954,AirPods Max 藍 MWW63,AirPods,AirPods Max (USB-C),AirPods Max,正常品
 MWW73TA/A,0013027955,AirPods Max 橙 MWW73,AirPods,AirPods Max (USB-C),AirPods Max,正常品
 MWW83TA/A,0013027956,AirPods Max 紫 MWW83,AirPods,AirPods Max (USB-C),AirPods Max,正常品
-3M682TA/A,0013028058,3M682 iPad Air 13 WF 128 灰-新,iPad,iPad Air 13in M2,WiFi iPad Air 13 灰,Demo
+2000130280080,0013028008,[i]Care AirPods 4/4降 兩年_990,Care,iCPP,[i]Care AirPods 4/4降 兩年_990,正常品
 SNGN2TA/A,0013028066,AC+ for iPad mini A17 P SNGN2,Care,ACPP+,iPad/iPad Mini ACPP+,正常品
 MXN63TA/A,0013028067,iPad mini WF 128G 太空灰 MXN63,iPad,iPad mini(A17 Pro),Wi-Fi  iPad mini 8.3 灰,正常品
 MXN73TA/A,0013028068,iPad mini WF 128G 藍 MXN73,iPad,iPad mini(A17 Pro),Wi-Fi  iPad mini 8.3 藍,正常品
@@ -996,7 +1013,6 @@ MYHC3TA/A,0013028087,iPad mini 5G 512G 太空灰 MYHC3,iPad,iPad mini(A17 Pro),C
 MYHD3TA/A,0013028088,iPad mini 5G 512G 藍 MYHD3,iPad,iPad mini(A17 Pro),Cellular iPad mini 8.3 藍,正常品
 MYHE3TA/A,0013028089,iPad mini 5G 512G 星光 MYHE3,iPad,iPad mini(A17 Pro),Cellular iPad mini 8.3 星,正常品
 MYHF3TA/A,0013028090,iPad mini 5G 512G 紫 MYHF3,iPad,iPad mini(A17 Pro),Cellular iPad mini 8.3 紫,正常品
-3N305TA/A,0013028091,3N305 iPad mini WF 128G 紫,iPad,iPad mini(A17 Pro),Wi-Fi  iPad mini 8.3 紫,Demo
 MWUC3TA/A,0013028133,M4 iMac 24 8核 256 銀 MWUC3,CPU,IMAC,iMac 24 M4 256G,正常品
 MWUE3TA/A,0013028134,M4 iMac 24 8核 256 綠 MWUE3,CPU,IMAC,iMac 24 M4 256G,正常品
 MWUF3TA/A,0013028135,M4 iMac 24 8核 256 藍 MWUF3,CPU,IMAC,iMac 24 M4 256G,正常品
@@ -1073,8 +1089,6 @@ MD1W4ZP/A,0013028507,iPhone 16e 256GB 白 MD1W4,iPhone,iPhone 16e,iPhone 16e 白
 MD1X4ZP/A,0013028508,iPhone 16e 512GB 黑 MD1X4,iPhone,iPhone 16e,iPhone 16e 黑,正常品
 MD274ZP/A,0013028509,iPhone 16e 512GB 白 MD274,iPhone,iPhone 16e,iPhone 16e 白,正常品
 ST3V2TA/A,0013028510,AC+ for iPhone 16e ST3V2,Care,ACPP+,iPhone 16e ACPP+,正常品
-3N762ZP/A,0013028511,3N762 iPhone 16e 128GB 黑,iPhone,iPhone 16e,iPhone 16e 黑,Demo
-3N763ZP/A,0013028512,3N763 iPhone 16e 128GB 白,iPhone,iPhone 16e,iPhone 16e 白,Demo
 MD3Y4TA/A,0013028574,iPad 11 WiFi 128 銀 MD3Y4,iPad,iPad(A16),WiFi iPad 11 銀,正常品
 MD4A4TA/A,0013028575,iPad 11 WiFi 128 藍 MD4A4,iPad,iPad(A16),WiFi iPad 11 藍,正常品
 MD4D4TA/A,0013028576,iPad 11 WiFi 128 黃 MD4D4,iPad,iPad(A16),WiFi iPad 11 黃,正常品
@@ -1192,14 +1206,6 @@ MDV54FE/A,0013028687,46mm 運動錶環 長春花 MDV54,Accy,*Apple Watch Accy,Ba
 SUYD2TA/A,0013028688,AC+ for iPad A16 SUYD2,Care,ACPP+,iPad A16 ACPP+,正常品
 SV072TA/A,0013028689,AC+ for iPad Air 11 5 SV072,Care,ACPP+,iPad Air 11 5th ACPP+,正常品
 SV172TA/A,0013028690,AC+ for iPad Air 13 2 SV172,Care,ACPP+,iPad Air 13 2th ACPP+,正常品
-3N671TA/A,0013028691,3N671 iPad Air 11 WF 128 藍 ,iPad,iPad Air 11in M3,WiFi iPad Air 11 藍,Demo
-3N672TA/A,0013028692,3N672 iPad Air 11 WF 128 星 ,iPad,iPad Air 11in M3,WiFi iPad Air 11 星,Demo
-3N673TA/A,0013028693,3N673 iPad Air 11 WF 128 紫 ,iPad,iPad Air 11in M3,WiFi iPad Air 11 紫,Demo
-3N728TA/A,0013028694,3N728 iPad Air 13 WF 128 藍 ,iPad,iPad Air 13in M3,WiFi iPad Air 13 藍,Demo
-3N729TA/A,0013028695,3N729 iPad Air 13 WF 128 星 ,iPad,iPad Air 13in M3,WiFi iPad Air 13 星,Demo
-3N730TA/A,0013028696,3N730 iPad Air 13 WF 128 紫 ,iPad,iPad Air 13in M3,WiFi iPad Air 13 紫,Demo
-3N789TA/A,0013028697,3N789 iPad 11 WF 128 銀 ,iPad,iPad(A16),WiFi iPad 11 銀,Demo
-3N790TA/A,0013028698,3N790 iPad 11 WF 128 藍 ,iPad,iPad(A16),WiFi iPad 11 藍,Demo
 STKT2TA/A,0013028701,AC+ for Mac Studio M4 STKT2,Care,ACPP+,Mac Studio ACPP+,正常品
 SUWE2TA/A,0013028702,AC+ for MBA 13 M4 SUWE2,Care,ACPP+,13 MacBook Air ACPP+,正常品
 SUWF2TA/A,0013028703,AC+ for MBA 15 M4 SUWF2,Care,ACPP+,15 MacBook Air ACPP+,正常品
@@ -1229,67 +1235,14 @@ MW1J3TA/A,0013028726,M4 MBA 15 16G 256 星 MW1J3,CPU,MACBOOK AIR 15(M4),MacBook 
 MW1K3TA/A,0013028727,M4 MBA 15 16G 512 星 MW1K3,CPU,MACBOOK AIR 15(M4),MacBook Air M4 16G 512G 星,正常品
 MW1L3TA/A,0013028728,M4 MBA 15 16G 256 午 MW1L3,CPU,MACBOOK AIR 15(M4),MacBook Air M4 16G 256G 午,正常品
 MW1M3TA/A,0013028729,M4 MBA 15 16G 512 午 MW1M3,CPU,MACBOOK AIR 15(M4),MacBook Air M4 16G 512G 午,正常品
-3N727TA/A,0013028731,3N727 iPad Air 13 WF 128 灰,iPad,iPad Air 13in M3,WiFi iPad Air 13 灰,Demo
-3N588TA/A,0013028748,教 3N588 AW S10 CL 46 黑/黑 S,Apple Watch,S10-Cell,46MM Sport,Demo
-3N532ZP/A,0013028751,教 3N532 iPhone 16 PM 256GB 黑,iPhone,iPhone 16 Pro Max,iPhone 16 Pro Max 黑,Demo
-3M780TA/A,0013028752,教 3M780 iPad Pro 13 WF 256 黑,iPad,iPad Pro 13(M4),Wi-Fi iPad Pro 13 黑,Demo
 MDV84FE/A,0013028784,USB-C to 3.5 mm Cable MDV84,Accy,#Cable,USB-C,正常品
 Z1K100011,0013028909,M4 iMac 24 10C 32 512 銀 Z1K1,CPU,IMAC,iMac 24 M4 512G,正常品
 Z1FG,0013028937,M4M MBP 14 Nano 1TB 黑 Z1FG,CPU,MBP 14 M4 Pro&Max,MacBook Pro M4Max 36G 1TB 黑,正常品
 MDEW4TA/A,0013028942,HomePod 午夜 MDEW4,Audio,HomePod,HomePod 灰,正常品
 MDEY4TA/A,0013028943,HomePod 白色 MDEY4,Audio,HomePod,HomePod 白,正常品
-MYJF3TA/A,0013028958,Studio Display 標準斜高 MYJF3,Accy,*CPU Accy,27" Display,正常品
-MYJG3TA/A,0013028959,Studio Display 標準斜 MYJG3,Accy,*CPU Accy,27" Display,正常品
+MYJF3TA/A,0013028958,Studio Display 標準斜高 MYJF3,Accy,*CPU Accy,"27"" Display",正常品
+MYJG3TA/A,0013028959,Studio Display 標準斜 MYJG3,Accy,*CPU Accy,"27"" Display",正常品
 Z1K5,0013028984,M4 iMac 24 10C 24 512 藍 Z1K5,CPU,IMAC,iMac 24 M4 512G,正常品
-MWV13TA/A,0013029053,北 MWV13D M4 iMac 10 16 256 藍,CPU,IMAC,iMac 24 M4 256G,Demo
-MU9D3TA/A,0013029054,北 MU9D3D M4 Mac mn 10C 16 256,CPU,MAC MINI,Mac mini M4 256G,Demo
-MC6T4TA/A,0013029055,北 MC6T4D M4 MBA13 8P16 256 藍,CPU,MACBOOK AIR 13(M4),MacBook Air M4 16G 256G 藍,Demo
-MW0Y3TA/A,0013029056,北 MW0Y3D M4 MBA13 8P16 256 星,CPU,MACBOOK AIR 13(M4),MacBook Air M4 16G 256G 星,Demo
-MW1L3TA/A,0013029057,北 MW1L3D M4 MBA 15 16G 256 午,CPU,MACBOOK AIR 15(M4),MacBook Air M4 16G 256G 午,Demo
-MW2U3TA/A,0013029058,北 MW2U3D M4 MBP 14 512GB 黑,CPU,MBP 14 M4,MacBook Pro M4 512G 黑,Demo
-MX2E3TA/A,0013029059,北 MX2E3D M4P MBP 14 512GB 銀,CPU,MBP 14 M4 Pro&Max,MacBook Pro M4Pro 512G 銀,Demo
-MX2X3TA/A,0013029060,北 MX2X3D M4P MBP 16 24 512 黑,CPU,MBP 16 M4 Pro&Max,MacBook Pro M4Pro 24G 512G 黑,Demo
-3N305TA/A,0013029061,北 3N305 iPad mini WF 128G 紫,iPad,iPad mini(A17 Pro),Wi-Fi  iPad mini 8.3 紫,Demo
-3N789TA/A,0013029062,北 3N789 iPad 11 WF 128 銀,iPad,iPad(A16),WiFi iPad 11 銀,Demo
-3N790TA/A,0013029063,北 3N790 iPad 11 WF 128 藍,iPad,iPad(A16),WiFi iPad 11 藍,Demo
-3N671TA/A,0013029064,北 3N671 iPad Air 11 WF 128 藍,iPad,iPad Air 11in M3,WiFi iPad Air 11 藍,Demo
-3N673TA/A,0013029065,北 3N673 iPad Air 11 WF 128 紫,iPad,iPad Air 11in M3,WiFi iPad Air 11 紫,Demo
-3N727TA/A,0013029066,北 3N727 iPad Air 13 WF 128 灰,iPad,iPad Air 13in M3,WiFi iPad Air 13 灰,Demo
-3M773TA/A,0013029067,北 3M773 iPad Pro 11 WF 256 銀,iPad,iPad Pro 11(M4),Wi-Fi iPad Pro 11 銀,Demo
-3M780TA/A,0013029068,北 3M780 iPad Pro 13 WF 256 黑,iPad,iPad Pro 13(M4),Wi-Fi iPad Pro 13 黑,Demo
-3M425ZP/A,0013029069,北 3M425 iPhone 15 128G 藍,iPhone,iPhone 15,iPhone 15 藍,Demo
-3M462ZP/A,0013029070,北 3M462 iPhone 15+ 128G 黑,iPhone,iPhone 15+,iPhone 15+ 黑,Demo
-3N399ZP/A,0013029071,北 3N399 iPhone 16 128G 藍,iPhone,iPhone 16,iPhone 16 藍,Demo
-3N400ZP/A,0013029072,北 3N400 iPhone 16 128G 綠,iPhone,iPhone 16,iPhone 16 綠,Demo
-3N348ZP/A,0013029073,北 3N348 iPhone 16+ 128G 黑,iPhone,iPhone 16+,iPhone 16+ 黑,Demo
-3N350ZP/A,0013029074,北 3N350 iPhone 16+ 128G 粉,iPhone,iPhone 16+,iPhone 16+ 粉,Demo
-3N752ZP/A,0013029075,北 3N752 iPhone 16 Pro 256G 白,iPhone,iPhone 16 Pro,iPhone 16 Pro 白,Demo
-3N754ZP/A,0013029076,北 3N754 iPhone 16 Pro 256G 原,iPhone,iPhone 16 Pro,iPhone 16 Pro 原,Demo
-3N532ZP/A,0013029077,北 3N532 iPhone 16 PM 256G 黑,iPhone,iPhone 16 Pro Max,iPhone 16 Pro Max 黑,Demo
-3N534ZP/A,0013029078,北 3N534 iPhone 16 PM 256G 沙,iPhone,iPhone 16 Pro Max,iPhone 16 Pro Max 沙,Demo
-3N762ZP/A,0013029079,北 3N762 iPhone 16e 128G 黑,iPhone,iPhone 16e,iPhone 16e 黑,Demo
-3K596TA/A,0013029080,北 3K596 AW SE 40 星鋁,Apple Watch,SE 2-GPS,40MM Sports,Demo
-MYJ33FE/A,0013029081,北 MYJ33D 40 運動錶帶 星光 SM,Accy,SE 2-Cell,44MM Sports,Demo
-3K789TA/A,0013029082,北 3K789 AW SE 4G 44 午鋁,Apple Watch,SE 2-Cell,44MM Sports,Demo
-3N492TA/A,0013029083,北 3N492 AW S10 42 金鋁/梅李環,Apple Watch,S10-GPS,42MM Sports,Demo
-3N498TA/A,0013029084,北 3N498 AW S10 46 黑鋁/墨水環,Apple Watch,S10-GPS,46MM Sports,Demo
-3N499TA/A,0013029085,北 3N499 AW S10 46 金鋁/胭粉帶,Apple Watch,S10-GPS,46MM Sports,Demo
-3N459TA/A,0013029086,北 3N459 AW Ultra 黑鈦/高山黑,Apple Watch,Ultra 2,49MM Loop,Demo
-3N668TA/A,0013029087,北 3N668 AW Ultra 原鈦,Apple Watch,Ultra 2,49MM 不鏽鋼,Demo
-MYJG3TA/A,0013029088,北 MYJG3D Studio Display 標斜,Accy,*CPU Accy,27" Display,Demo
-MXK83TA/A,0013029089,北 MXK83D Magic KB 數字鍵 黑,Accy,*CPU Accy,Keyboard,Demo
-MXK63TA/A,0013029090,北 MXK63D Magic Mouse 黑,Accy,*CPU Accy,Mouse,Demo
-MQDP3TA/A,0013029091,北 MQDP3D iPad 10th 巧控鍵 中,Accy,*iPad Accy,10.9 Keyboard,Demo
-MDFV4TA/A,0013029092,北 MDFV4D Air 11 M2/3 巧控鍵,Accy,*iPad Accy,Air 11 5th Keyboard,Demo
-MDFW4TA/A,0013029093,北 MDFW4D Air 13 M2/3 巧控鍵,Accy,*iPad Accy,Air 13 2nd Keyboard,Demo
-MWR03TA/A,0013029094,北 MWR03D Pro 11 M4 巧控鍵 白,Accy,*iPad Accy,11 5th Keyboard,Demo
-MWR53TA/A,0013029095,北 MWR53D Pro 13 M4 巧控鍵 黑,Accy,*iPad Accy,12.9 7th Keyboard,Demo
-MUWA3TA/A,0013029096,北 MUWA3D Apple Pencil USB,Accy,*iPad Accy,Apple Pencil,Demo
-MX2D3TA/A,0013029097,北 MX2D3D Apple Pencil Pro,Accy,*iPad Accy,Apple Pencil Pro,Demo
-MWW43TA/A,0013029098,北 MWW43D AirPods Max 午夜,AirPods,AirPods Max (USB-C),AirPods Max,Demo
-MQJ73TA/A,0013029099,北 MQJ73D HomePod 午夜,Audio,HomePod,HomePod 灰,Demo
-MN893TA/A,0013029100,北 MN893D Apple TV 4K 乙太 128,Accy,Apple TV,Apple TV 4K 128G,Demo
-MX6X3TA/A,0013029101,北 MX6X3D MagSafe 充電器 1M,Accy,#Cable,MagSafe,Demo
 Z1EP,0013029126,M4 iMac 24 10C 16 256 藍 Z1EP,CPU,IMAC,iMac 24 M4 256G,正常品
 Z1EK,0013029127,M4 iMac 24 10C 16 256 黃 Z1EK,CPU,IMAC,iMac 24 M4 256G,正常品`;
 
