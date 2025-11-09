@@ -1,1443 +1,736 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>產品查找工具</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { font-family: 'Inter', sans-serif; margin: 20px; background-color: #f0f4f8; color: #333; }
-    .container { max-width: 1200px; margin: 0 auto; background-color: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-    h1 { color: #1e3a5f; text-align: center; margin-bottom: 20px; }
-    .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; justify-content: center; }
-    #searchInput { flex-grow: 1; max-width: 400px; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; transition: all 0.2s; }
-    #searchInput:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
-    .upload-label { padding: 12px 24px; border: 2px dashed #9ca3af; border-radius: 8px; font-size: 16px; cursor: pointer; color: #4b5563; text-align: center; transition: border-color 0.2s, background-color 0.2s; }
-    .upload-label:hover { border-color: #3b82f6; background-color: #e5f1ff; }
-    .table-container { overflow-x: auto; border: 1px solid #e5e7eb; border-radius: 8px; }
-    table { border-collapse: collapse; width: 100%; min-width: 800px; }
-    th, td { border: 1px solid #e5e7eb; padding: 12px; text-align: left; font-size: 14px; }
-    th { background-color: #f9fafb; color: #4b5563; font-weight: 600; position: sticky; top: 0; z-index: 1; }
-    tbody tr:nth-child(even) { background-color: #f9fafb; }
-    tbody tr:hover { background-color: #f3f4f6; }
-    .no-results { text-align: center; padding: 20px; color: #6b7280; }
-    @media (max-width: 768px) { .controls { flex-direction: column; align-items: stretch; } #searchInput { max-width: none; } }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日預估達成報表轉換工具</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft JhengHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+
+        .upload-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+        }
+
+        .upload-area:hover {
+            background: #eef1ff;
+            border-color: #764ba2;
+            transform: scale(1.02);
+        }
+
+        .upload-area.dragover {
+            background: #e0e7ff;
+            border-color: #4f46e5;
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .upload-text {
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .upload-hint {
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .results-section {
+            display: none;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .date-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.6em;
+            font-weight: normal;
+            margin-left: auto;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-bottom: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        /* === 優化後的表格樣式 === */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            font-size: 0.9em;
+        }
+
+        /* 表頭設計 */
+        thead {
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            padding: 16px 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.85em;
+            color: white;
+            border-right: 1px solid rgba(255,255,255,0.15);
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+        }
+
+        th:first-child {
+            text-align: left;
+            padding-left: 24px;
+            border-top-left-radius: 12px;
+            min-width: 120px;
+        }
+
+        th:last-child {
+            border-right: none;
+            border-top-right-radius: 12px;
+        }
+
+        /* 一般資料列 */
+        tbody tr {
+            transition: all 0.2s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        tbody tr:hover:not(.total-row) {
+            background: linear-gradient(90deg, #f8faff 0%, #ffffff 100%);
+            transform: translateX(2px);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+        }
+
+        td {
+            padding: 14px 10px;
+            text-align: right;
+            border-right: 1px solid #f5f5f5;
+            color: #333;
+            font-size: 0.9em;
+            font-variant-numeric: tabular-nums;
+        }
+
+        td:first-child {
+            border-left: none;
+        }
+
+        td:last-child {
+            border-right: none;
+        }
+
+        /* 店名欄位 */
+        .store-name {
+            font-weight: 600;
+            color: #4f46e5;
+            text-align: left !important;
+            padding-left: 24px !important;
+            font-size: 0.95em;
+            letter-spacing: 0.3px;
+        }
+
+        /* 總計行特殊設計 */
+        .total-row {
+            font-weight: 700;
+            background: linear-gradient(90deg, #eef2ff 0%, #e0e7ff 100%);
+            border-top: 2px solid #667eea !important;
+            border-bottom: 2px solid #667eea !important;
+            box-shadow: 0 2px 12px rgba(102, 126, 234, 0.15);
+        }
+
+        .total-row td {
+            padding: 16px 10px;
+            font-size: 0.95em;
+            color: #1e293b;
+            border-right: 1px solid rgba(102, 126, 234, 0.1);
+        }
+        
+        .total-row .store-name {
+            color: #1e293b;
+            font-size: 1em;
+            letter-spacing: 0.5px;
+        }
+
+        .total-row:hover {
+            background: linear-gradient(90deg, #eef2ff 0%, #e0e7ff 100%) !important;
+            transform: none !important;
+        }
+
+        /* 正負值顏色 */
+        .positive {
+            color: #059669;
+            font-weight: 600;
+        }
+
+        .negative {
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        /* 百分比欄位 */
+        td:nth-child(5),
+        td:nth-child(8),
+        td:nth-child(10) {
+            font-weight: 600;
+            background: rgba(249, 250, 251, 0.5);
+        }
+
+        /* 金額欄位增強 */
+        td:nth-child(2),
+        td:nth-child(3),
+        td:nth-child(4) {
+            font-weight: 500;
+        }
+
+        /* 匯出按鈕 */
+        .export-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1em;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .export-btn:active {
+            transform: translateY(0);
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 1200px) {
+            .container {
+                max-width: 100%;
+            }
+            
+            th, td {
+                padding: 12px 8px;
+                font-size: 0.85em;
+            }
+            
+            .store-name {
+                padding-left: 16px !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .results-section {
+                padding: 20px;
+            }
+            
+            .section-title {
+                font-size: 1.4em;
+            }
+            
+            th, td {
+                padding: 10px 6px;
+                font-size: 0.8em;
+            }
+        }
+
+        /* 載入動畫 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .results-section {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* 滾動條美化 */
+        .table-container::-webkit-scrollbar {
+            height: 10px;
+        }
+
+        .table-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>產品查找工具</h1>
-    <hr class="divider">
-    <p class="subtitle">僅限 iStore 內部員工使用 ｜ Morio Present</p>
+    <div class="container">
+        <div class="header">
+            <h1>📊 日預估達成報表轉換工具</h1>
+            <p>上傳 Excel 檔案，自動生成月份與年度銷售數據報表</p>
+        </div>
 
-    <div class="controls">
-      <input type="text" id="searchInput" placeholder="輸入產品名稱、代碼或分類關鍵字">
-      <label for="fileInput" class="upload-label">
-        上傳新的 CSV 檔案
-      </label>
-      <input type="file" id="fileInput" accept=".csv">
+        <div class="upload-section">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">點擊或拖曳 Excel 檔案到此處</div>
+                <div class="upload-hint">支援 .xlsx 和 .xls 格式</div>
+            </div>
+            <input type="file" id="fileInput" accept=".xlsx, .xls">
+        </div>
+
+        <div class="results-section" id="resultsSection">
+            <div class="section-title">
+                📅 月份數據
+                <span class="date-badge" id="monthDate"></span>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>店名</th>
+                            <th>月目標</th>
+                            <th>預估業績</th>
+                            <th>實績</th>
+                            <th>預估達成率</th>
+                            <th>預估差距</th>
+                            <th>去年同期</th>
+                            <th>成長比</th>
+                            <th>成長金額</th>
+                            <th>月計達成率</th>
+                            <th>目標差距</th>
+                        </tr>
+                    </thead>
+                    <tbody id="monthlyBody"></tbody>
+                </table>
+            </div>
+
+            <div class="section-title">
+                📈 年度數據
+                <span class="date-badge" id="yearDate"></span>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>店名</th>
+                            <th>年度目標</th>
+                            <th>預估業績</th>
+                            <th>實績</th>
+                            <th>預估達成率</th>
+                            <th>預估差距</th>
+                            <th>同期實績</th>
+                            <th>成長比</th>
+                            <th>成長金額</th>
+                            <th>月計達成率</th>
+                            <th>目標差距</th>
+                        </tr>
+                    </thead>
+                    <tbody id="yearlyBody"></tbody>
+                </table>
+            </div>
+
+            <center>
+                <button class="export-btn" onclick="exportToExcel()">📥 匯出 CSV</button>
+            </center>
+        </div>
     </div>
 
-    <div class="table-container">
-      <table id="resultTable">
-        <thead>
-          <tr>
-            <th>型號</th>
-            <th>Code</th>
-            <th>產品名稱</th>
-            <th>大分類</th>
-            <th>中分類</th>
-            <th>小分類</th>
-            <th>Remark</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </div>
-</body>
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const resultsSection = document.getElementById('resultsSection');
 
-<style>
-  h1 {
-    font-size: 32px;     /* 字體放大 */
-    font-weight: bold;   /* 粗體 */
-    text-align: center;  /* 置中 */
-    margin-bottom: 10px;
-  }
+        uploadArea.addEventListener('click', () => fileInput.click());
 
-  .divider {
-    border: none;
-    border-top: 1px solid #eee; /* 淡灰色線 */
-    width: 60%;                /* 不要滿版，稍微收斂 */
-    margin: 6px auto;         /* 上下留白、置中 */
-  }
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
 
-  .subtitle {
-    font-size: 10px;           /* 小字 */
-    color: #aaa;               /* 淺灰色 */
-    margin-top: -2px;          /* 緊貼分隔線 */
-    margin-bottom: 20px;
-    text-align: center;        /* 置中 */
-  }
-</style>
-  
-  <script>
-    let data = [];
-    let originalData = [];
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
 
-    const csvData = `manufacture_style,Code,product_name,大分類,中分類,小分類,Remark
-MC747TA/A,0024810094,45W Magsafe Power MC747,Accy,#Power Adapter,Magsafe,正常品
-MD564FE/A,0024838073,APPLE USB SUPERDRIVE MD564,Accy,*CPU Accy,Super Drive,正常品
-MD592TA/A,0024838077,45W Magsafe 2 Power MD592,Accy,#Power Adapter,Magsafe,正常品
-MD825FE/A,0024854442,Lightning to VGA Adapter MD825,Accy,#Connector,Lightning,正常品
-MJ1L2FE/A,0024944020,USB-C VGA Adapter MJ1L2,Accy,#Connector,USB-C,正常品
-MRMH2TA/A,0013004407,Magic Keyboard繁中數字灰 MRMH2,Accy,*CPU Accy,Keyboard,正常品
-S5067ZM/A,0013006741,AC+ for iPod touch S5067,Care,ACPP+,iPod ACPP+,正常品
-S5432ZM/A,0013006742,AC+ for AW S3 S5432,Care,ACPP+,Aw S3 ACPP+,正常品
-S6446ZM/A,0013007618,AC+ for HomePod S6446,Care,ACPP+,HomePod ACPP+,正常品
-MWTY2FE/A,0013007876,44mm 氈布錶環 錨灰色 MWTY2,Accy,*Apple Watch Accy,Band 44mm Sport Loop,正常品
-MX832FE/A,0013007882,44 氈布錶環XL 錨灰色 MX832,Accy,*Apple Watch Accy,Band 44mm Sport Loop,正常品
-MWRF2FE/A,0013007912,40 時尚錶帶 黑色S MWRF2,Accy,*Apple Watch Accy,Band 40mm Leather Buckle,正常品
-MWRG2FE/A,0013007913,40 時尚錶帶 黑色M MWRG2,Accy,*Apple Watch Accy,Band 40mm Leather Buckle,正常品
-MWRH2FE/A,0013007914,40 時尚錶帶 黑色L MWRG2,Accy,*Apple Watch Accy,Band 40mm Leather Buckle,正常品
-MX432PA/A,0013008675,Beats Solo3 WL 黑 MX432,Audio,Beats,Solo 3,正常品
-MX442PA/A,0013008676,Beats Solo3 WL 玫瑰金 MX442,Audio,Beats,Solo 3,正常品
-MX472PA/A,0013008679,Beats Solo3 WL 紅 MX472,Audio,Beats,Solo 3,正常品
-MWV92FE/A,0013008772,"MBP 16"" 皮革護套 馬鞍棕 MWV92",Accy,*CPU Accy,"MBP 15"" Case",正常品
-MWVA2FE/A,0013008773,"MBP 16"" 皮革護套 黑色 MWVA2",Accy,*CPU Accy,"MBP 15"" Case",正常品
-MWVC2FE/A,0013008774,"MBP 16"" 皮革護套 午夜藍 MWVC2",Accy,*CPU Accy,"MBP 15"" Case",正常品
-MWUQ2FE/A,0013008784,44mm 運動錶帶 綠玉石 MWUQ2,Accy,*Apple Watch Accy,Band 44mm Sport,正常品
-MXNL2TA/A,0013009230,12.9 6th 聰穎鍵盤 中 MXNL2,Accy,*iPad Accy,12.9 6th Keyboard,正常品
-MXNL2TE/A,0013009231,12.9 6th 聰穎鍵盤 英 MXNL2,Accy,*iPad Accy,12.9 6th Keyboard,正常品
-MXT52FE/A,0013009238,iPad Pro 11 Case 粉沙 MXT52,Accy,iPad Case,iPad Pro 11,正常品
-MXTA2FE/A,0013009243,iPad Pro 12.9 Case 粉沙 MXTA2,Accy,iPad Case,iPad Pro 12.9,正常品
-MX572FE/A,0013009402,Mac Pro 輪組套件 MX572,Accy,*CPU Accy,Mac Pro Accy,正常品
-MXNM2FE/A,0013009403,Mac Pro 腳座套件 MXNM2,Accy,*CPU Accy,Mac Pro Accy,正常品
-MXY82TA/A,0013009566,Beats Powerbeats Pro 冰川藍 MXY82,Audio,Beats,Powerbeats Pro,正常品
-MXP32FE/A,0013009659,40mm 運動錶帶 岩灰色 MXP32,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MXP42FE/A,0013009660,40mm 運動錶帶 維他橙 MXP42,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MXP52FE/A,0013009661,40mm 運動錶帶 浪花綠 MXP52,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MXWQ2FE/A,0013009662,40mm 運動錶帶 亞麻藍 MXWQ2,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MXP62FE/A,0013009663,44mm 運動錶帶 岩灰色 MXP62,Accy,*Apple Watch Accy,Band 44mm Sport,正常品
-MXP72FE/A,0013009664,44mm 運動錶帶 維他橙 MXP72,Accy,*Apple Watch Accy,Band 44mm Sport,正常品
-MXP82FE/A,0013009665,44mm 運動錶帶 浪花綠 MXP82,Accy,*Apple Watch Accy,Band 44mm Sport,正常品
-MXWR2FE/A,0013009666,44mm 運動錶帶 亞麻藍 MXWR2,Accy,*Apple Watch Accy,Band 44mm Sport,正常品
-2000130096759,0013009675,[i]Care iPhone SE 一年期_1690,Care,iCPP,[i]Care iPhone SE 一年期_1690,正常品
-2000130096766,0013009676,[i]Care iPhone 8 一年期_2590,Care,iCPP,[i]Care iPhone 8 一年期_2590,正常品
-2000130096773,0013009677,[i]Care iPhone 一年期_3290,Care,iCPP,[i]Care iPhone 13/13m/14/15 一年期_3290,正常品
-2000130096780,0013009678,[i]Care iPhone 一年期_4390,Care,iCPP,[i]Care iPhone XS-15PM 一年期_4390,正常品
-2000130096797,0013009679,[i]Care iPhone SE 兩年期_2590,Care,iCPP,[i]Care iPhone SE 兩年期_2590,正常品
-2000130096803,0013009680,[i]Care iPhone 兩年期_4890,Care,iCPP,[i]Care iPhone 13/13m/14/15 兩年期_4890,正常品
-2000130096810,0013009681,[i]Care iPhone 兩年期_6390,Care,iCPP,[i]Care iPhone XS-15PM 兩年期_6390,正常品
-2000130096827,0013009682,[i]Care iPad M/A 一年期_1590,Care,iCPP,[i]Care iPad Mini/Air 一年期_1590,正常品
-2000130096834,0013009683,[i]Care iPad M/A 兩年期_2190,Care,iCPP,[i]Care iPad Mini/Air 兩年期_2190,正常品
-2000130096841 ,0013009684,[i]Care EOL iPad Pro 一年_2590,Care,iCPP,[i]Care EOL iPad Pro 一年期_2590,正常品
-2000130096858 ,0013009685,[i]Care EOL iPad Pro 兩年_4300,Care,iCPP,[i]Care EOL iPad Pro 兩年期_4300,正常品
-2000130096865 ,0013009686,[i]Care AW S8/S9 一年期_1690,Care,iCPP,[i]Care AW S8/S9 一年期_1690,正常品
-2000130096872 ,0013009687,[i]Care AW S8/S9 兩年期_2590,Care,iCPP,[i]Care AW S8/S9 兩年期_2590,正常品
-2000130096889 ,0013009688,[i]Care AirPods 一年期_790,Care,iCPP,[i]Care AirPods 2/3/Pro 一年期_790,正常品
-2000130096896 ,0013009689,[i]Care AirPods 兩年期_1000,Care,iCPP,[i]Care AirPods 2/3/Pro 兩年期_1000,正常品
-2000130096902,0013009690,[i]Care MBA 一年期_4350,Care,iCPP,[i]Care MBA 一年期_4350,正常品
-2000130096919,0013009691,[i]Care M MBP 14 一年期_5090,Care,iCPP,[i]Care M1-M3 MBP 14 一年期_5090,正常品
-2000130096926,0013009692,[i]Care M MBP 16 一年期_6990,Care,iCPP,[i]Care M1-M3 MBP 16 一年期_6990,正常品
-2000130096940,0013009694,[i]Care M MBP 14 三年期_8990,Care,iCPP,[i]Care M1-M3 MBP 14 三年期_8990,正常品
-2000130096957,0013009695,[i]Care M MBP 16 三年期_12990,Care,iCPP,[i]Care M1-M3 MBP 16 三年期_12990,正常品
-MGN03TA/A,0013015730,12W USB Power Adapter MGN03,Accy,#Power Adapter,USB-A,正常品
-MG3W3FE/A,0013016500,44 N 運動錶帶 灰霧綠 MG3W3,Accy,*Apple Watch Accy,Band 44mm Nike Sport,正常品
-MG433FE/A,0013016515,44mm 運動錶帶 賽勒綠 MG433,Accy,*Apple Watch Accy,Band 44mm Sport,正常品
-MGX43FE/A,0013016533,44mm 運動錶環 木炭L MGX43,Accy,*Apple Watch Accy,Band 44mm Sport Loop,正常品
-MY622FE/A,0013016538,40mm 時尚錶帶 粉橘色L MY622,Accy,*Apple Watch Accy,Band 40mm Modern Buckle,正常品
-MY642FE/A,0013016540,40mm 時尚錶帶 石榴色M MY642,Accy,*Apple Watch Accy,Band 40mm Modern Buckle,正常品
-MY652FE/A,0013016541,40mm 時尚錶帶 石榴色L MY652,Accy,*Apple Watch Accy,Band 40mm Modern Buckle,正常品
-MY662FE/A,0013016542,40mm 時尚錶帶 緋紅色S MY662,Accy,*Apple Watch Accy,Band 40mm Modern Buckle,正常品
-MY672FE/A,0013016543,40mm 時尚錶帶 緋紅色M MY672,Accy,*Apple Watch Accy,Band 40mm Modern Buckle,正常品
-MY682FE/A,0013016544,40mm 時尚錶帶 緋紅色L MY682,Accy,*Apple Watch Accy,Band 40mm Modern Buckle,正常品
-MY962FE/A,0013016545,40mm 鏈紋錶帶 馬鞍棕S MY962,Accy,*Apple Watch Accy,Band 44mm Leather Link,正常品
-MY982FE/A,0013016547,40mm 鏈紋錶帶 波羅藍S MY982,Accy,*Apple Watch Accy,Band 44mm Leather Link,正常品
-MY992FE/A,0013016548,40mm 鏈紋錶帶 波羅藍L MY992,Accy,*Apple Watch Accy,Band 44mm Leather Link,正常品
-MY9A2FE/A,0013016549,40mm 鏈紋錶帶 黑S MY9A2,Accy,*Apple Watch Accy,Band 44mm Leather Link,正常品
-MY9E2FE/A,0013016552,40mm 鏈紋錶帶 罌粟色L MY9E2,Accy,*Apple Watch Accy,Band 44mm Leather Link,正常品
-MY9M2FE/A,0013016557,44mm 鏈紋錶帶 黑S MY9M2,Accy,*Apple Watch Accy,Band 44mm Leather Link,正常品
-MY9N2FE/A,0013016558,44mm 鏈紋錶帶 黑L MY9N2,Accy,*Apple Watch Accy,Band 44mm Leather Link,正常品
-MGYV3FE/A,0013016577,iPad Mini Cover 賽勒綠 MGYV3,Accy,iPad Case,iPad Mini Cover,正常品
-MGYW3FE/A,0013016578,iPad Mini Cover 粉橘色 MGYW3,Accy,iPad Case,iPad Mini Cover,正常品
-MH0A3FE/A,0013016588,iPad Air 10.9 Case 白 MH0A3,Accy,iPad Case,iPad Air 10.9,正常品
-MH0D3FE/A,0013016589,iPad Air 10.9 Case 黑 MH0D3,Accy,iPad Case,iPad Air 10.9,正常品
-S8622ZX/A,0013016592,AC+ for iPad Air 4 S8622,Care,ACPP+,iPad Air 4 ACPP+,正常品
-S8406ZX/A,0013016593,AC+ for iPhone 11 S8406,Care,ACPP+,iPhone 11 ACPP+,正常品
-S8408ZX/A,0013016594,AC+ for iPhone 11 Pro S8408,Care,ACPP+,iPhone 11 Pro ACPP+,正常品
-S8410ZX/A,0013016595,AC+ for iPhone 11 PM S8410,Care,ACPP+,iPhone 11 PM ACPP+,正常品
-S8424ZX/A,0013016596,AC+ for iPhone SE 2 S8424,Care,ACPP+,iPhone SE 2 ACPP+,正常品
-S8426ZX/A,0013016597,AC+ for iPhone X S8426,Care,ACPP+,iPhone X ACPP+,正常品
-S8428ZX/A,0013016598,AC+ for iPhone XR S8428,Care,ACPP+,iPhone XR ACPP+,正常品
-S8430ZX/A,0013016599,AC+ for iPhone XS S8430,Care,ACPP+,iPhone XS ACPP+,正常品
-S8432ZX/A,0013016600,AC+ for iPhone XSM S8432,Care,ACPP+,iPhone XSM ACPP+,正常品
-S8646ZX/A,0013016601,AC+ for AW SE S8646,Care,ACPP+,AW SE ACPP+,正常品
-S8647ZX/A,0013016602,AC+ for AW Nike SE S8647,Care,ACPP+,AW Nike SE ACPP+,正常品
-S8678ZX/A,0013016603,AC+ for AW S6 S8678,Care,ACPP+,AW S6 ACPP+,正常品
-S8679ZX/A,0013016604,AC+ for AW Nike S6 S8679,Care,ACPP+,AW Nike S6 ACPP+,正常品
-S8717ZX/A,0013016605,AC+ for AW S6 不鏽鋼 S8717,Care,ACPP+,AW S6 不鏽鋼 ACPP+,正常品
-S8718ZX/A,0013016606,AC+ for AW S6 鈦金屬 S8718,Care,ACPP+,AW Edition S6 鈦金屬 ACPP+,正常品
-2000130166148,0013016614,[i]Care AW SE 一年期_1290,Care,iCPP,[i]Care AW SE 一年期_1290,正常品
-2000130166155,0013016615,[i]Care AW SE 兩年期_1690,Care,iCPP,[i]Care AW SE 兩年期_1690,正常品
-MHLP3FE/A,0013016723,MagSafe 皮革卡套 罌粟 MHLP3,Accy,*iPhone Accy,MagSafe,正常品
-MHLQ3FE/A,0013016724,MagSafe 皮革卡套 海藍 MHLQ3,Accy,*iPhone Accy,MagSafe,正常品
-MHLR3FE/A,0013016725,MagSafe 皮革卡套 棕 MHLR3,Accy,*iPhone Accy,MagSafe,正常品
-MHLT3FE/A,0013016726,MagSafe 皮革卡套 黑 MHLT3,Accy,*iPhone Accy,MagSafe,正常品
-MYMC2ZP/A,0013016755,Beats Flex 入耳 黑紅 MYMC2,Audio,Beats,Beats Flex,正常品
-MYMD2ZP/A,0013016756,Beats Flex 入耳 柚黃 MYMD2,Audio,Beats,Beats Flex,正常品
-MY5G2TA/A,0013016757,HomePod mini 灰 MY5G2,Audio,HomePod,HomePod mini 灰,正常品
-MY5H2TA/A,0013016758,HomePod mini 白 MY5H2,Audio,HomePod,HomePod mini 白,正常品
-S8930ZX/A,0013016806,AC+ for iPhone 12 mini S8930,Care,ACPP+,iPhone 12 mini ACPP+,正常品
-S8945ZX/A,0013016807,AC+ for iPhone 12 S8945,Care,ACPP+,iPhone 12 ACPP+,正常品
-S8963ZX/A,0013016808,AC+ for iPhone 12 Pro S8963,Care,ACPP+,iPhone 12 Pro ACPP+,正常品
-S8979ZX/A,0013016809,AC+ for iPhone 12 PM S8979,Care,ACPP+,iPhone 12 PM ACPP+,正常品
-S9043ZX/A,0013016810,AC+ for HomePod mini S9043,Care,ACPP+,HomePod mini ACPP+,正常品
-MYME2ZP/A,0013017766,Beats Flex 入耳 卡其灰 MYME2,Audio,Beats,Beats Flex,正常品
-MYMG2ZP/A,0013017767,Beats Flex 入耳 冷豔藍 MYMG2,Audio,Beats,Beats Flex,正常品
-MXK22FE/A,0013017768,Lightning to 3.5mm 線 MXK22,Accy,EarPhone,3.5mm,正常品
-S9086ZX/A,0013017822,AC+ for AirPods Max S9086,Care,ACPP+,AirPods ACPP+,正常品
-S9066ZX/A,0013017823,AC+ for AirPods S9066,Care,ACPP+,AirPods ACPP+,正常品
-S9078ZX/A,0013017824,AC+ for AirPods Pro S9078,Care,ACPP+,AirPods ACPP+,正常品
-S9094ZX/A,0013017825,AC+ for Beats S9094,Care,ACPP+,Beats ACPP+,正常品
-2000130179483,0013017948,[i]Care AirPods Max 一年_1290,Care,iCPP,[i]Care AirPods Max 一年期_1290,正常品
-2000130179490,0013017949,[i]Care AirPods Max 兩年_1700,Care,iCPP,[i]Care AirPods Max 兩年期_1700,正常品
-MY592TA/A,0013017952,Beats Powerbeats Pro 海軍藍 MY592,Audio,Beats,Powerbeats Pro,正常品
-2000130180915,0013018091,[i]Care iPhone SE 續保_1690,Care,iCPP,[i]Care iPhone SE 續保一年期_1690,正常品
-2000130180922,0013018092,[i]Care iPhone 續保_3290,Care,iCPP,[i]Care iPhone 12/13/13m/14 續保一年期_3290,正常品
-2000130180939,0013018093,[i]Care iPhone 續保_4390,Care,iCPP,[i]Care iPhone XS-14PM 續保一年期_4390,正常品
-2000130180946,0013018094,[i]Care iPad M/A 續保_1590,Care,iCPP,[i]Care iPad Mini/Air 續保一年期_1590,正常品
-2000130180953,0013018095,[i]Care iPad Pro 續保_2590,Care,iCPP,[i]Care iPad Pro 續保一年期_2590,正常品
-2000130180960,0013018096,[i]Care AW SE 續保_1290,Care,iCPP,[i]Care AW SE 續保一年期_1290,正常品
-2000130180977,0013018097,[i]Care AW S7/S8 續保_1690,Care,iCPP,[i]Care AW S7/S8 續保一年期_1690,正常品
-2000130180984,0013018098,[i]Care AirPods 續保_790,Care,iCPP,[i]Care AirPods 2/3/Pro 續保一年期_790,正常品
-2000130180991,0013018099,[i]Care AirPods Max 續保_1290,Care,iCPP,[i]Care AirPods Max 續保一年期_1290,正常品
-2000130181004,0013018100,[i]Care MBA 續保_4350,Care,iCPP,[i]Care MBA 續保一年期_4350,正常品
-2000130181011,0013018101,[i]Care MBP 13/14 續保_5090,Care,iCPP,[i]Care MBP 13/14 續保一年期_5090,正常品
-2000130181028,0013018102,[i]Care MBP 15/16 續保_6990,Care,iCPP,[i]Care MBP 15/16 續保一年期_6990,正常品
-MK0E3FE/A,0013018201,MagSafe 皮革卡套 桑紅 MK0E3,Accy,*iPhone Accy,MagSafe,正常品
-MX532FE/A,0013018202,AirTag 一入 MX532,Accy,*iPhone Accy,AirTag 一入,正常品
-MX542FE/A,0013018203,AirTag 四入 MX542,Accy,*iPhone Accy,AirTag 四入,正常品
-MHJ23FE/A,0013018208,AirTag 鑰匙圈 海藍 MHJ23,Accy,*iPhone Accy,AirTag Accy,正常品
-MK103FE/A,0013018209,AirTag 鑰匙圈 紅 MK103,Accy,*iPhone Accy,AirTag Accy,正常品
-MK0V3FE/A,0013018211,AirTag 皮掛環 紅 MK0V3,Accy,*iPhone Accy,AirTag Accy,正常品
-MJ6G3FE/A,0013018215,40 N 運動錶帶 暗綠銀 MJ6G3,Accy,*Apple Watch Accy,Band 40mm Nike Sport,正常品
-MJ6H3FE/A,0013018216,40 N 運動錶帶 藍光綠 MJ6H3,Accy,*Apple Watch Accy,Band 40mm Nike Sport,正常品
-MJ6J3FE/A,0013018217,40 N 運動錶帶 鐵灰黑 MJ6J3,Accy,*Apple Watch Accy,Band 40mm Nike Sport,正常品
-MJ6K3FE/A,0013018218,44 N 運動錶帶 暗綠銀 MJ6K3,Accy,*Apple Watch Accy,Band 44mm Nike Sport,正常品
-MJ6L3FE/A,0013018219,44 N 運動錶帶 藍光綠 MJ6L3,Accy,*Apple Watch Accy,Band 44mm Nike Sport,正常品
-MJ6M3FE/A,0013018220,44 N 運動錶帶 鐵灰黑 MJ6M3,Accy,*Apple Watch Accy,Band 44mm Nike Sport,正常品
-MJFR3FE/A,0013018221,40mm 運動錶環 海鹽 MJFR3,Accy,*Apple Watch Accy,Band 40mm Sport Loop,正常品
-MJFT3FE/A,0013018222,40mm 運動錶環 向日葵 MJFT3,Accy,*Apple Watch Accy,Band 40mm Sport Loop,正常品
-MJFU3FE/A,0013018223,40mm 運動錶環 橄欖 MJFU3,Accy,*Apple Watch Accy,Band 40mm Sport Loop,正常品
-MJFV3FE/A,0013018224,40mm 運動錶環 深淵藍 MJFV3,Accy,*Apple Watch Accy,Band 40mm Sport Loop,正常品
-MJFW3FE/A,0013018225,40mm 運動錶環 紅 MJFW3,Accy,*Apple Watch Accy,Band 40mm Sport Loop,正常品
-MJFY3FE/A,0013018226,44mm 運動錶環 海鹽 MJFY3,Accy,*Apple Watch Accy,Band 44mm Sport Loop,正常品
-MJG03FE/A,0013018227,44mm 運動錶環 向日葵 MJG03,Accy,*Apple Watch Accy,Band 44mm Sport Loop,正常品
-MJG13FE/A,0013018228,44mm 運動錶環 橄欖 MJG13,Accy,*Apple Watch Accy,Band 44mm Sport Loop,正常品
-MJG23FE/A,0013018229,44mm 運動錶環 深淵藍 MJG23,Accy,*Apple Watch Accy,Band 44mm Sport Loop,正常品
-MJG33FE/A,0013018230,44mm 運動錶環 紅 MJG33,Accy,*Apple Watch Accy,Band 44mm Sport Loop,正常品
-MJK23FE/A,0013018231,40mm 運動錶帶 卡布藍 MJK23,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MJK33FE/A,0013018232,40mm 運動錶帶 哈密瓜 MJK33,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MJK43FE/A,0013018233,40mm 運動錶帶 綠頭鴨 MJK43,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MJK53FE/A,0013018234,44mm 運動錶帶 卡布藍 MJK53,Accy,*Apple Watch Accy,Band 44mm Sport,正常品
-MJK63FE/A,0013018235,44mm 運動錶帶 哈密瓜 MJK63,Accy,*Apple Watch Accy,Band 44mm Sport,正常品
-MJK73FE/A,0013018236,44mm 運動錶帶 綠頭鴨 MJK73,Accy,*Apple Watch Accy,Band 44mm Sport,正常品
-MJKD3FE/A,0013018237,40mm 鏈紋錶帶 粉筆白S MJKD3,Accy,*Apple Watch Accy,Band 40mm Leather Link,正常品
-MJKE3FE/A,0013018238,40mm 鏈紋錶帶 粉筆白L MJKE3,Accy,*Apple Watch Accy,Band 40mm Leather Link,正常品
-MJKR3FE/A,0013018239,44mm 鏈紋錶帶 粉筆白S MJKR3,Accy,*Apple Watch Accy,Band 44mm Leather Link,正常品
-MJKT3FE/A,0013018240,44mm 鏈紋錶帶 粉筆白L MJKT3,Accy,*Apple Watch Accy,Band 44mm Leather Link,正常品
-MJM43FE/A,0013018306,iPad Mini Cover 綠頭鴨 MJM43,Accy,iPad Case,iPad Mini Cover,正常品
-MJM63FE/A,0013018307,iPad Mini Cover 電光橙 MJM63,Accy,iPad Case,iPad Mini Cover,正常品
-MJM23FE/A,0013018309,iPad Air 4 Case 電光橙 MJM23,Accy,iPad Case,iPad Air 10.9,正常品
-S9634ZX/A,0013018326,AC+ for Apple TV S9634,Care,ACPP+,Apple TV ACPP+,正常品
-S8402ZX/A,0013018327,AC+ for iPad Pro 10.5 S8402,Care,ACPP+,iPad Pro 10.5 ACPP+,正常品
-S8403ZX/A,0013018328,AC+ for iPad Pro 11 S8403,Care,ACPP+,iPad Pro 11 ACPP+,正常品
-S8404ZX/A,0013018329,AC+ for iPad Pro 12.9 4 S8404,Care,ACPP+,iPad Pro 12.9 EOL ACPP+,正常品
-S9865ZX/A,0013018330,AC+ for iPad Pro 12.9 5 S9865,Care,ACPP+,iPad Pro 12.9 5th ACPP+,正常品
-S9688ZX/A,0013018331,AC+ for iMac S9688,Care,ACPP+,iMac ACPP+,正常品
-MJWN3FE/A,0013018382,40 N 運動錶環 彩虹 MJWN3,Accy,*Apple Watch Accy,Band 40mm Nike Sport Loop,正常品
-MJWP3FE/A,0013018383,44 N 運動錶環 彩虹 MJWP3,Accy,*Apple Watch Accy,Band 44mm Nike Sport,正常品
-S9703ZX/A,0013018530,AC+ for Mac mini S9703,Care,ACPP+,Mac mini ACPP+,正常品
-S9718ZX/A,0013018531,AC+ for Mac Pro S9718,Care,ACPP+,Mac Pro ACPP+,正常品
-S9788ZX/A,0013018532,AC+ for MBA M1 S9788,Care,ACPP+,13 MacBook Air ACPP+,正常品
-S9764ZX/A,0013018533,AC+ for MBP 13 Intel S9764,Care,ACPP+,13 MacBook Pro ACPP+,正常品
-S9736ZX/A,0013018534,AC+ for MBP 13 M1 S9736,Care,ACPP+,13 MacBook Pro ACPP+,正常品
-S9775ZX/A,0013018536,AC+ for MBP 16 Intel S9775,Care,ACPP+,16 MacBook Pro ACPP+,正常品
-S9742ZX/A,0013018537,AC+ for Pro Display S9742,Care,ACPP+,Display ACPP+,正常品
-2000130185989,0013018598,[i]Care MBA 三年期_5490,Care,iCPP,[i]Care M1/M2 MBA 三年期_5490,正常品
-2000130185996,0013018599,[i]Care M MBP 13 三年期_7490,Care,iCPP,[i]Care M1/M2 MBP 三年期_7490,正常品
-MLYX3FE/A,0013018627,AirTag 掛環 卡布藍 MLYX3,Accy,*iPhone Accy,AirTag Accy,正常品
-MM003FE/A,0013018629,AirTag 皮掛環 檸檬 MM003,Accy,*iPhone Accy,AirTag Accy,正常品
-MM043FE/A,0013018632,AirTag 皮掛環 海藍 MM043,Accy,*iPhone Accy,AirTag Accy,正常品
-MM063FE/A,0013018633,AirTag 鑰匙圈 檸檬 MM063,Accy,*iPhone Accy,AirTag Accy,正常品
-MJ4X3TA/A,0013018642,Beats Studio Buds 無線黑 MJ4X3,Audio,Beats,Studio Buds,正常品
-MJ4Y3TA/A,0013018643,Beats Studio Buds 無線白 MJ4Y3,Audio,Beats,Studio Buds,正常品
-MJ503TA/A,0013018644,Beats Studio Buds 無線紅 MJ503,Audio,Beats,Studio Buds,正常品
-MM0Q3FE/A,0013018911,MagSafe 皮革卡套 金棕 MM0Q3,Accy,*iPhone Accy,MagSafe,正常品
-MM0T3FE/A,0013018912,MagSafe 皮革卡套 櫻桃 MM0T3,Accy,*iPhone Accy,MagSafe,正常品
-MM0W3FE/A,0013018913,MagSafe 皮革卡套 紫藤 MM0W3,Accy,*iPhone Accy,MagSafe,正常品
-MM0X3FE/A,0013018914,MagSafe 皮革卡套 杉綠 MM0X3,Accy,*iPhone Accy,MagSafe,正常品
-MMFA3FE/A,0013018917,AirTag 鑰匙圈 金棕 MMFA3,Accy,*iPhone Accy,AirTag Accy,正常品
-MMFC3FE/A,0013018918,AirTag 鑰匙圈 紫藤 MMFC3,Accy,*iPhone Accy,AirTag Accy,正常品
-SCMP2ZX/A,0013019020,AC+ for iPhone 13 mini SCMP2,Care,ACPP+,iPhone 13 mini ACPP+,正常品
-SCMQ2ZX/A,0013019021,AC+ for iPhone 13 SCMQ2,Care,ACPP+,iPhone 13 ACPP+,正常品
-SCMR2ZX/A,0013019022,AC+ for iPhone 13P SCMR2,Care,ACPP+,iPhone 13 Pro ACPP+,正常品
-SCMT2ZX/A,0013019023,AC+ for iPhone 13PM SCMT2,Care,ACPP+,iPhone 13 PM ACPP+,正常品
-SCLH2ZX/A,0013019024,AC+ for iPad mini 6 SCLH2,Care,ACPP+,iPad/iPad Mini ACPP+,正常品
-SCM32ZX/A,0013019025,AC+ for iPad 9 SCM32,Care,ACPP+,iPad/iPad Mini ACPP+,正常品
-MM6G3FE/A,0013019026,iPad Mini 6th Case 黑 MM6G3,Accy,iPad Case,iPad Mini,正常品
-MM6H3FE/A,0013019027,iPad Mini 6th Case 白 MM6H3,Accy,iPad Case,iPad Mini,正常品
-MM6J3FE/A,0013019028,iPad Mini 6th Case 橙 MM6J3,Accy,iPad Case,iPad Mini,正常品
-MM6K3FE/A,0013019029,iPad Mini 6th Case 櫻桃 MM6K3,Accy,iPad Case,iPad Mini,正常品
-MM6L3FE/A,0013019030,iPad Mini 6th Case 薰衣 MM6L3,Accy,iPad Case,iPad Mini,正常品
-MM6N3FE/A,0013019032,iPad Pro 11 Case 薰衣草 MM6N3,Accy,iPad Case,iPad Pro 11,正常品
-MM6P3FE/A,0013019033,iPad Pro 12.9 Case 薰衣草 MM6P3,Accy,iPad Case,iPad Pro 12.9,正常品
-2000130199078,0013019907,[i]Care iPhone SE 意外保_1080,Care,iCPP,[i]Care iPhone SE 意外保_1080,正常品
-2000130199085,0013019908,[i]Care iPhone 7/8 意外保_1480,Care,iCPP,[i]Care iPhone 7/8 意外保_1480,正常品
-2000130199092,0013019909,[i]Care iPhone 意外保_1880,Care,iCPP,[i]Care iPhone 7+~13m 意外保_1880,正常品
-2000130199108,0013019910,[i]Care iPhone 意外保_2480,Care,iCPP,[i]Care iPhone XS~13PM 意外保_2480,正常品
-SCCU2ZX/A,0013020011,AC+ for AW S7 SCCU2,Care,ACPP+,AW S7 ACPP+,正常品
-SCCV2ZX/A,0013020012,AC+ for AW Nike S7 SCCV2,Care,ACPP+,AW Nike S7 ACPP+,正常品
-SCCW2ZX/A,0013020013,AC+ for AW S7 不鏽鋼 SCCW2,Care,ACPP+,AW S7 不鏽鋼 ACPP+,正常品
-SCCX2ZX/A,0013020014,AC+ for AW S7 鈦金屬 SCCX2,Care,ACPP+,AW Edition S7 鈦金屬 ACPP+,正常品
-SCCY2ZX/A,0013020015,AC+ for AW S7 Hermes SCCY2,Care,ACPP+,AW Hermes S7 ACPP+,正常品
-MJ2C3TA/A,0013020088,HomePod mini 藍 MJ2C3,Audio,HomePod,HomePod mini 藍,正常品
-MJ2D3TA/A,0013020089,HomePod mini 橘 MJ2D3,Audio,HomePod,HomePod mini 橘,正常品
-MJ2E3TA/A,0013020090,HomePod mini 黃 MJ2E3,Audio,HomePod,HomePod mini 黃,正常品
-SCPG2ZX/A,0013020459,AC+ for MBP 14 M1 SCPG2,Care,ACPP+,14 MacBook Pro ACPP+,正常品
-SDYP2ZX/A,0013020460,AC+ for MBP 16 M1 SDYP2,Care,ACPP+,16 MacBook Pro ACPP+,正常品
-MK2F3TA/A,0013020605,Beats Fit Pro 黑 MK2F3,Audio,Beats,Fit Pro,正常品
-MK2G3TA/A,0013020606,Beats Fit Pro 白 MK2G3,Audio,Beats,Fit Pro,正常品
-MK2H3TA/A,0013020607,Beats Fit Pro 紫 MK2H3,Audio,Beats,Fit Pro,正常品
-MK2J3TA/A,0013020608,Beats Fit Pro 灰 MK2J3,Audio,Beats,Fit Pro,正常品
-Z14Y,0013020711,"M1P 21 MBP 16"" 512 銀 Z14Y",CPU,MACBOOK PRO 16,MacBook Pro M1Pro CTO,正常品
-SEJD2ZX/A,0013020820,AC+ for iPad Air 5 SEJD2,Care,ACPP+,iPad Air 5 ACPP+,正常品
-SEH92ZX/A,0013020821,AC+ for iPhone SE 3 SEH92,Care,ACPP+,iPhone SE 3 ACPP+,正常品
-SELQ2ZX/A,0013020822,AC+ for Mac Studio SELQ2,Care,ACPP+,Mac Studio ACPP+,正常品
-SEL02ZX/A,0013020823,AC+ for Studio Display SEL02,Care,ACPP+,Studio Display ACPP+,正常品
-MNA43FE/A,0013020824,iPad Air 5 Case 暗櫻桃 MNA43,Accy,iPad Case,iPad Air 10.9,正常品
-MNA63FE/A,0013020825,iPad Air 5 Case 薰衣草 MNA63,Accy,iPad Case,iPad Air 10.9,正常品
-MNA73FE/A,0013020826,iPad Air 5 Case 海藍 MNA73,Accy,iPad Case,iPad Air 10.9,正常品
-2000130209210,0013020921,[i]Care iPad Air 5 一年期_1890,Care,iCPP,[i]Care iPad Air 5 一年期_1890,正常品
-2000130209227,0013020922,[i]Care iPad Air 5 兩年期_2590,Care,iCPP,[i]Care iPad Air 5 兩年期_2590,正常品
-2000130209234,0013020923,[i]Care iPad Air 5 續保_1890,Care,iCPP,[i]Care iPad Air 5 續保一年期_1890,正常品
-MMT73TA/A,0013020948,Beats Studio Buds 無線藍 MMT73,Audio,Beats,Studio Buds,正常品
-MMT83TA/A,0013020949,Beats Studio Buds 無線粉 MMT83,Audio,Beats,Studio Buds,正常品
-MMT93TA/A,0013020950,Beats Studio Buds 無線灰 MMT93,Audio,Beats,Studio Buds,正常品
-MN6M3FE/A,0013021295,41mm N 運動錶環 彩虹 MN6M3,Accy,*Apple Watch Accy,Band 41mm Nike Sport,正常品
-MN6N3FE/A,0013021296,45mm N 運動錶環 彩虹 MN6N3,Accy,*Apple Watch Accy,Band 45mm Nike Sport,正常品
-SF8C2ZX/A,0013021306,AC+ for MBA 13 M2 SF8C2,Care,ACPP+,13 MacBook Air ACPP+,正常品
-SF932ZX/A,0013021307,AC+ for MBP 13 M2 SF932,Care,ACPP+,13 MacBook Pro ACPP+,正常品
-2000130213668 ,0013021366,[i]Care M3 MBA 三年期_6290,Care,iCPP,[i]Care M3 MBA 三年期_6290,正常品
-MPU73FE/A,0013021701,iPhone 14 PM 透明 MPU73,Accy,iPhone Case,iPhone 14 Pro Max,正常品
-MQE93FE/A,0013021756,49 海洋錶帶 白色 MQE93,Accy,*Apple Watch Accy,Band 49mm Ocean Band,正常品
-MQEA3FE/A,0013021757,49 海洋錶帶 白 加長節 MQEA3,Accy,*Apple Watch Accy,Band 49mm Ocean Band,正常品
-SFYT2TA/A,0013021784,AC+ for iPhone 14 Plus SFYT2,Care,ACPP+,iPhone 14 Plus ACPP+,正常品
-SFYU2TA/A,0013021785,AC+ for iPhone 14 SFYU2,Care,ACPP+,iPhone 14 ACPP+,正常品
-SFYV2TA/A,0013021786,AC+ for iPhone 14 Pro SFYV2,Care,ACPP+,iPhone 14 Pro ACPP+,正常品
-SFYW2TA/A,0013021787,AC+ for iPhone 14 PM SFYW2,Care,ACPP+,iPhone 14 PM ACPP+,正常品
-SG1L2TA/A,0013021788,AC+ for AW S8 SG1L2,Care,ACPP+,AW S8 ACPP+,正常品
-SG1Y2TA/A,0013021789,AC+ for AW Hermes SG1Y2,Care,ACPP+,AW Hermes S8 ACPP+,正常品
-SG282TA/A,0013021790,AC+ for AW SE 2 SG282,Care,ACPP+,AW SE 2 ACPP+,正常品
-SG2L2TA/A,0013021791,AC+ for AW S8 不鏽鋼 SG2L2,Care,ACPP+,AW S8 不鏽鋼 ACPP+,正常品
-SG2U2TA/A,0013021792,AC+ for AW Ultra SG2U2,Care,ACPP+,AW Ultra ACPP+,正常品
-2000130226514 ,0013022651,[i]Care 14/15 Plus 一年期_4290,Care,iCPP,[i]Care 14/15 Plus 一年期_4290,正常品
-2000130226521 ,0013022652,[i]Care 14/15 Plus 兩年期_5790,Care,iCPP,[i]Care 14/15 Plus 兩年期_5790,正常品
-2000130226545 ,0013022654,[i]Care AW Ultra 一年期_2290,Care,iCPP,[i]Care AW Ultra 一年期_2290,正常品
-2000130226552 ,0013022655,[i]Care AW Ultra 兩年期_3190,Care,iCPP,[i]Care AW Ultra 兩年期_3190,正常品
-MN873TA/A,0013022823,Apple TV 4K WiFi 64 MN873,Accy,Apple TV,Apple TV 4K 64G,正常品
-MN893TA/A,0013022824,Apple TV 4K 乙太 128 MN893,Accy,Apple TV,Apple TV 4K 128G,正常品
-MQDP3TA/A,0013022826,iPad 10th 巧控鍵盤 中 MQDP3,Accy,*iPad Accy,10.9 Keyboard,正常品
-SGFC2TA/A,0013022843,AC+ for iPad 10 SGFC2,Care,ACPP+,iPad/iPad Mini ACPP+,正常品
-SGG22TA/A,0013022844,AC+ for iPad Pro 11 4 SGG22,Care,ACPP+,iPad Pro 11 4th ACPP+,正常品
-SGGY2TA/A,0013022845,AC+ for iPad Pro 12.9 6 SGGY2,Care,ACPP+,iPad Pro 12.9 6th ACPP+,正常品
-Z14J,0013023194,Mac Studio M1M 1T Z14J,CPU,MAC STUDIO,Mac Studio M1M 1T,正常品
-SGAQ2TA/A,0013023240,AC+ for MBP 14 M2 SGAQ2,Care,ACPP+,14 MacBook Pro ACPP+,正常品
-SGCT2TA/A,0013023241,AC+ for MBP 16 M2 SGCT2,Care,ACPP+,16 MacBook Pro ACPP+,正常品
-SGQQ2TA/A,0013023242,AC+ for Mac mini M2 SGQQ2,Care,ACPP+,Mac mini ACPP+,正常品
-MQLH3TA/A,0013023569,Beats Studio Buds 黑金 MQLH3,Audio,Beats,Studio Buds,正常品
-MQLJ3TA/A,0013023570,Beats Studio Buds 象牙白 MQLJ3,Audio,Beats,Studio Buds,正常品
-MQLK3TA/A,0013023571,Beats Studio Buds 透明 MQLK3,Audio,Beats,Studio Buds,正常品
-SJFY2TA/A,0013023743,AC+ for MBA 15 M2 SJFY2,Care,ACPP+,15 MacBook Air ACPP+,正常品
-SJGC2TA/A,0013023744,AC+ for Mac Studio M2 SJGC2,Care,ACPP+,Mac Studio ACPP+,正常品
-SJGQ2TA/A,0013023745,AC+ for Mac Pro M2 SJGQ2,Care,ACPP+,Mac Pro ACPP+,正常品
-2000130237756,0013023775,[i]Care M MBA 15 三年期_7290,Care,iCPP,[i]Care M2/M3 MBA 15 三年期_7290,正常品
-MQTP3ZP/A,0013023788,Beats Studio Pro WL 黑 MQTP3,Audio,Beats,Studio Pro,正常品
-MQTQ3ZP/A,0013023789,Beats Studio Pro WL 藍 MQTQ3,Audio,Beats,Studio Pro,正常品
-MQTR3ZP/A,0013023790,Beats Studio Pro WL 白 MQTR3,Audio,Beats,Studio Pro,正常品
-MQTT3ZP/A,0013023791,Beats Studio Pro WL 棕 MQTT3,Audio,Beats,Studio Pro,正常品
-Z17Z,0013023951,Mac Studio M2M 1T Z17Z,CPU,MAC STUDIO,Mac Studio M2M 1T CTO,正常品
-MT2P3TA/A,0013023983,Beats Studio Buds 宇宙銀 MT2P3,Audio,Beats,Studio Buds,正常品
-MT2Q3TA/A,0013023984,Beats Studio Buds 宇宙粉 MT2Q3,Audio,Beats,Studio Buds,正常品
-MTP03ZP/A,0013025080,iPhone 15 128GB 黑 MTP03,iPhone,iPhone 15,iPhone 15 黑,正常品
-MTP13ZP/A,0013025081,iPhone 15 128GB 粉 MTP13,iPhone,iPhone 15,iPhone 15 粉,正常品
-MTP23ZP/A,0013025082,iPhone 15 128GB 黃 MTP23,iPhone,iPhone 15,iPhone 15 黃,正常品
-MTP43ZP/A,0013025083,iPhone 15 128GB 藍 MTP43,iPhone,iPhone 15,iPhone 15 藍,正常品
-MTP53ZP/A,0013025084,iPhone 15 128GB 綠 MTP53,iPhone,iPhone 15,iPhone 15 綠,正常品
-MTP63ZP/A,0013025085,iPhone 15 256GB 黑 MTP63,iPhone,iPhone 15,iPhone 15 黑,正常品
-MTP73ZP/A,0013025086,iPhone 15 256GB 粉 MTP73,iPhone,iPhone 15,iPhone 15 粉,正常品
-MTP83ZP/A,0013025087,iPhone 15 256GB 黃 MTP83,iPhone,iPhone 15,iPhone 15 黃,正常品
-MTP93ZP/A,0013025088,iPhone 15 256GB 藍 MTP93,iPhone,iPhone 15,iPhone 15 藍,正常品
-MTPA3ZP/A,0013025089,iPhone 15 256GB 綠 MTPA3,iPhone,iPhone 15,iPhone 15 綠,正常品
-MTPC3ZP/A,0013025090,iPhone 15 512GB 黑 MTPC3,iPhone,iPhone 15,iPhone 15 黑,正常品
-MTPD3ZP/A,0013025091,iPhone 15 512GB 粉 MTPD3,iPhone,iPhone 15,iPhone 15 粉,正常品
-MTPF3ZP/A,0013025092,iPhone 15 512GB 黃 MTPF3,iPhone,iPhone 15,iPhone 15 黃,正常品
-MTPG3ZP/A,0013025093,iPhone 15 512GB 藍 MTPG3,iPhone,iPhone 15,iPhone 15 藍,正常品
-MTPH3ZP/A,0013025094,iPhone 15 512GB 綠 MTPH3,iPhone,iPhone 15,iPhone 15 綠,正常品
-MU0Y3ZP/A,0013025095,iPhone 15+ 128GB 黑 MU0Y3,iPhone,iPhone 15+,iPhone 15+ 黑,正常品
-MU103ZP/A,0013025096,iPhone 15+ 128GB 粉 MU103,iPhone,iPhone 15+,iPhone 15+ 粉,正常品
-MU123ZP/A,0013025097,iPhone 15+ 128GB 黃 MU123,iPhone,iPhone 15+,iPhone 15+ 黃,正常品
-MU163ZP/A,0013025098,iPhone 15+ 128GB 藍 MU163,iPhone,iPhone 15+,iPhone 15+ 藍,正常品
-MU173ZP/A,0013025099,iPhone 15+ 128GB 綠 MU173,iPhone,iPhone 15+,iPhone 15+ 綠,正常品
-MU183ZP/A,0013025100,iPhone 15+ 256GB 黑 MU183,iPhone,iPhone 15+,iPhone 15+ 黑,正常品
-MU193ZP/A,0013025101,iPhone 15+ 256GB 粉 MU193,iPhone,iPhone 15+,iPhone 15+ 粉,正常品
-MU1D3ZP/A,0013025102,iPhone 15+ 256GB 黃 MU1D3,iPhone,iPhone 15+,iPhone 15+ 黃,正常品
-MU1F3ZP/A,0013025103,iPhone 15+ 256GB 藍 MU1F3,iPhone,iPhone 15+,iPhone 15+ 藍,正常品
-MU1G3ZP/A,0013025104,iPhone 15+ 256GB 綠 MU1G3,iPhone,iPhone 15+,iPhone 15+ 綠,正常品
-MU1H3ZP/A,0013025105,iPhone 15+ 512GB 黑 MU1H3,iPhone,iPhone 15+,iPhone 15+ 黑,正常品
-MU1J3ZP/A,0013025106,iPhone 15+ 512GB 粉 MU1J3,iPhone,iPhone 15+,iPhone 15+ 粉,正常品
-MU1M3ZP/A,0013025107,iPhone 15+ 512GB 黃 MU1M3,iPhone,iPhone 15+,iPhone 15+ 黃,正常品
-MU1P3ZP/A,0013025108,iPhone 15+ 512GB 藍 MU1P3,iPhone,iPhone 15+,iPhone 15+ 藍,正常品
-MU1Q3ZP/A,0013025109,iPhone 15+ 512GB 綠 MU1Q3,iPhone,iPhone 15+,iPhone 15+ 綠,正常品
-MT183FE/A,0013025152,iPhone 15+ 矽膠殼 松柏色 MT183,Accy,iPhone Case,iPhone 15+,正常品
-MT193FE/A,0013025153,iPhone 15+ 矽膠殼 冬藍色 MT193,Accy,iPhone Case,iPhone 15+,正常品
-MT1A3FE/A,0013025154,iPhone 15 P 矽膠 黑色 MT1A3,Accy,iPhone Case,iPhone 15 Pro,正常品
-MT1D3FE/A,0013025155,iPhone 15 P 矽膠 風暴藍 MT1D3,Accy,iPhone Case,iPhone 15 Pro,正常品
-MT1E3FE/A,0013025156,iPhone 15 P 矽膠 陶土色 MT1E3,Accy,iPhone Case,iPhone 15 Pro,正常品
-MT1F3FE/A,0013025157,iPhone 15 P 矽膠 淡粉色 MT1F3,Accy,iPhone Case,iPhone 15 Pro,正常品
-MT1L3FE/A,0013025161,iPhone 15 P 矽膠 冬藍色 MT1L3,Accy,iPhone Case,iPhone 15 Pro,正常品
-MT1M3FE/A,0013025162,iPhone 15 PM 矽膠 黑色 MT1M3,Accy,iPhone Case,iPhone 15 Pro Max,正常品
-MT1P3FE/A,0013025163,iPhone 15 PM 矽膠 風暴藍 MT1P3,Accy,iPhone Case,iPhone 15 Pro Max,正常品
-MT1Q3FE/A,0013025164,iPhone 15 PM 矽膠 陶土色 MT1Q3,Accy,iPhone Case,iPhone 15 Pro Max,正常品
-MT1U3FE/A,0013025165,iPhone 15 PM 矽膠 淡粉色 MT1U3,Accy,iPhone Case,iPhone 15 Pro Max,正常品
-MT223FE/A,0013025172,iPhone 15 Pro 透明殼 MT223,Accy,iPhone Case,iPhone 15 Pro,正常品
-MT233FE/A,0013025173,iPhone 15 PM 透明殼 MT233,Accy,iPhone Case,iPhone 15 Pro Max,正常品
-MT4D3FE/A,0013025187,iPhone 15+ 織紋殼 海洋藍 MT4D3,Accy,iPhone Case,iPhone 15+,正常品
-MT4F3FE/A,0013025188,iPhone 15+ 織紋殼 長青色 MT4F3,Accy,iPhone Case,iPhone 15+,正常品
-MT4J3FE/A,0013025190,iPhone 15 P 織紋殼 淺褐 MT4J3,Accy,iPhone Case,iPhone 15 Pro,正常品
-MT4L3FE/A,0013025191,iPhone 15 P 織紋殼 桑椹 MT4L3,Accy,iPhone Case,iPhone 15 Pro,正常品
-MT4Q3FE/A,0013025192,iPhone 15 P 織紋殼 海藍 MT4Q3,Accy,iPhone Case,iPhone 15 Pro,正常品
-MT4V3FE/A,0013025194,iPhone 15 PM 織紋殼 黑色 MT4V3,Accy,iPhone Case,iPhone 15 Pro Max,正常品
-MT4W3FE/A,0013025195,iPhone 15 PM 織紋殼 淺褐 MT4W3,Accy,iPhone Case,iPhone 15 Pro Max,正常品
-MUQX3FE/A,0013025201,USB-C to L 轉接器 MUQX3,Accy,#Connector,USB-C,正常品
-MTJV3TA/A,0013025202,AirPods Pro 第二代 USB_C MTJV3,AirPods,AirPods Pro 2 (USB-C),AirPods Pro 第二代,正常品
-MT2H3FE/A,0013025204,AirTag 織紋鑰匙圈 黑色 MT2H3,Accy,*iPhone Accy,AirTag Accy,正常品
-MT2J3FE/A,0013025205,AirTag 織紋鑰匙圈 桑椹 MT2J3,Accy,*iPhone Accy,AirTag Accy,正常品
-MT2K3FE/A,0013025206,AirTag 織紋鑰匙圈 海藍 MT2K3,Accy,*iPhone Accy,AirTag Accy,正常品
-MT2L3FE/A,0013025207,AirTag 織紋鑰匙圈 淺褐色 MT2L3,Accy,*iPhone Accy,AirTag Accy,正常品
-MT2M3FE/A,0013025208,AirTag 織紋鑰匙圈 珊瑚色 MT2M3,Accy,*iPhone Accy,AirTag Accy,正常品
-MT5N3FE/A,0013025269,49mm 高山錶環 靛青 S MT5N3,Accy,*Apple Watch Accy,Band 49mm Alpine Loop,正常品
-MT5Q3FE/A,0013025270,49mm 高山錶環 靛青 M MT5Q3,Accy,*Apple Watch Accy,Band 49mm Alpine Loop,正常品
-MT5R3FE/A,0013025271,49mm 高山錶環 靛青 L MT5R3,Accy,*Apple Watch Accy,Band 49mm Alpine Loop,正常品
-MT613FE/A,0013025279,49mm 越野錶環 藍黑 S/M MT613,Accy,*Apple Watch Accy,Band 49mm Trail Loop,正常品
-MT623FE/A,0013025280,49mm 越野錶環 藍黑 M/L MT623,Accy,*Apple Watch Accy,Band 49mm Trail Loop,正常品
-MU9P3FE/A,0013025314,41mm 運動錶環 驕傲版 MU9P3,Accy,*Apple Watch Accy,Band 41mm Sport Loop,正常品
-MU9R3FE/A,0013025315,45mm 運動錶環 驕傲版 MU9R3,Accy,*Apple Watch Accy,Band 45mm Sport Loop,正常品
-MUQ13FE/A,0013025329,41mm 運動錶帶 驕傲版 S/M MUQ13,Accy,*Apple Watch Accy,Band 41mm Sport,正常品
-MUQ23FE/A,0013025330,41mm 運動錶帶 驕傲版 M/L MUQ23,Accy,*Apple Watch Accy,Band 41mm Sport,正常品
-MUQ33FE/A,0013025331,45mm 運動錶帶 驕傲版 S/M MUQ33,Accy,*Apple Watch Accy,Band 45mm Sport,正常品
-MUQ43FE/A,0013025332,45mm 運動錶帶 驕傲版 M/L MUQ43,Accy,*Apple Watch Accy,Band 45mm Sport,正常品
-MUQ53FE/A,0013025333,40mm 運動錶帶 BU S/M MUQ53,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MUQ63FE/A,0013025334,40mm 運動錶帶 BU M/L MUQ63,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MUQ73FE/A,0013025335,44mm 運動錶帶 BU S/M MUQ73,Accy,*Apple Watch Accy,Band 44mm Sport,正常品
-MUQ83FE/A,0013025336,44mm 運動錶帶 BU M/L MUQ83,Accy,*Apple Watch Accy,Band 44mm Sport,正常品
-MUUK3FE/A,0013025337,41 N 運動錶帶 純鉑金 S/M MUUK3,Accy,*Apple Watch Accy,Band 41mm Nike Sport,正常品
-MUUL3FE/A,0013025338,41 N 運動錶帶 純鉑金 M/L MUUL3,Accy,*Apple Watch Accy,Band 41mm Nike Sport,正常品
-MUUN3FE/A,0013025339,41 N 運動錶帶 午夜空 S/M MUUN3,Accy,*Apple Watch Accy,Band 41mm Nike Sport,正常品
-MUUP3FE/A,0013025340,41 N 運動錶帶 午夜空 M/L MUUP3,Accy,*Apple Watch Accy,Band 41mm Nike Sport,正常品
-MUUR3FE/A,0013025342,41 N 運動錶帶 沙漠石 M/L MUUR3,Accy,*Apple Watch Accy,Band 41mm Nike Sport,正常品
-MUUT3FE/A,0013025343,41 N 運動錶帶 焰藍色 S/M MUUT3,Accy,*Apple Watch Accy,Band 41mm Nike Sport,正常品
-MUUU3FE/A,0013025344,41 N 運動錶帶 焰藍色 M/L MUUU3,Accy,*Apple Watch Accy,Band 41mm Nike Sport,正常品
-MUUV3FE/A,0013025345,41 N 運動錶帶 軍卡其 S/M MUUV3,Accy,*Apple Watch Accy,Band 41mm Nike Sport,正常品
-MUUW3FE/A,0013025346,41 N 運動錶帶 軍卡其 M/L MUUW3,Accy,*Apple Watch Accy,Band 41mm Nike Sport,正常品
-MUUX3FE/A,0013025347,41 N 運動錶帶 橙粉色 S/M MUUX3,Accy,*Apple Watch Accy,Band 41mm Nike Sport,正常品
-MUUY3FE/A,0013025348,41 N 運動錶帶 橙粉色 M/L MUUY3,Accy,*Apple Watch Accy,Band 41mm Nike Sport,正常品
-MUV03FE/A,0013025349,45 N 運動錶帶 純鉑金 S/M MUV03,Accy,*Apple Watch Accy,Band 45mm Nike Sport,正常品
-MUV13FE/A,0013025350,45 N 運動錶帶 純鉑金 M/L MUV13,Accy,*Apple Watch Accy,Band 45mm Nike Sport,正常品
-MUV33FE/A,0013025351,45 N 運動錶帶 午夜空 S/M MUV33,Accy,*Apple Watch Accy,Band 45mm Nike Sport,正常品
-MUV53FE/A,0013025352,45 N 運動錶帶 午夜空 M/L MUV53,Accy,*Apple Watch Accy,Band 45mm Nike Sport,正常品
-MUV63FE/A,0013025353,45 N 運動錶帶 沙漠石 S/M MUV63,Accy,*Apple Watch Accy,Band 45mm Nike Sport,正常品
-MUV73FE/A,0013025354,45 N 運動錶帶 沙漠石 M/L MUV73,Accy,*Apple Watch Accy,Band 45mm Nike Sport,正常品
-MUV83FE/A,0013025355,45 N 運動錶帶 焰藍色 S/M MUV83,Accy,*Apple Watch Accy,Band 45mm Nike Sport,正常品
-MUV93FE/A,0013025356,45 N 運動錶帶 焰藍色 M/L MUV93,Accy,*Apple Watch Accy,Band 45mm Nike Sport,正常品
-MUVC3FE/A,0013025357,45 N 運動錶帶 軍卡其 S/M S/M MUVC3,Accy,*Apple Watch Accy,Band 45mm Nike Sport,正常品
-MUVD3FE/A,0013025358,45 N 運動錶帶 軍卡其 S/M M/L MUVD3,Accy,*Apple Watch Accy,Band 45mm Nike Sport,正常品
-MUVE3FE/A,0013025359,45 N 運動錶帶 橙粉色 S/M MUVE3,Accy,*Apple Watch Accy,Band 45mm Nike Sport,正常品
-MUVF3FE/A,0013025360,45 N 運動錶帶 橙粉色 M/L MUVF3,Accy,*Apple Watch Accy,Band 45mm Nike Sport,正常品
-SJXC2TA/A,0013025361,AC+ for AW S9 SJXC2,Care,ACPP+,AW S9 ACPP+,正常品
-SJXD2TA/A,0013025362,AC+ for AW Ultra 2 SJXD2,Care,ACPP+,AW Ultra ACPP+,正常品
-SJXE2TA/A,0013025363,AC+ for AW Herm_s S9 SJXE2,Care,ACPP+,AW Hermes S9 ACPP+,正常品
-SJY32TA/A,0013025364,AC+ for AW S9 不鏽鋼 SJY32,Care,ACPP+,AW S9 不鏽鋼 ACPP+,正常品
-SJRQ2TA/A,0013025365,AC+ for iPhone 15 SJRQ2,Care,ACPP+,iPhone 15 ACPP+,正常品
-SJT42TA/A,0013025366,AC+ for iPhone 15 Plus SJT42,Care,ACPP+,iPhone 15 Plus ACPP+,正常品
-SJT92TA/A,0013025367,AC+ for iPhone 15 Pro SJT92,Care,ACPP+,iPhone 15 Pro ACPP+,正常品
-SJTJ2TA/A,0013025368,AC+ for iPhone 15 PM SJTJ2,Care,ACPP+,iPhone 15 PM ACPP+,正常品
-MUWA3TA/A,0013025609,Apple Pencil USB-C MUWA3,Accy,*iPad Accy,Apple Pencil,正常品
-MT0H3TA/A,0013025673,AW USB-C 磁性快充線 1m MT0H3,Accy,#Cable,Apple Watch,正常品
-SL9K2TA/A,0013025704,AC+ for MBP 14 M3 SL9K2,Care,ACPP+,14 MacBook Pro ACPP+,正常品
-SL9L2TA/A,0013025705,AC+ for MBP 14 M3P/M3M SL9L2,Care,ACPP+,14 MacBook Pro ACPP+,正常品
-SL9M2TA/A,0013025706,AC+ for MBP 16 M3 SL9M2,Care,ACPP+,16 MacBook Pro ACPP+,正常品
-SLA62TA/A,0013025707,AC+ for iMac M3 SLA62,Care,ACPP+,iMac ACPP+,正常品
-MUQ93FE/A,0013026024,USB-C to Lightning 1m MUQ93,Accy,#Cable,USB-C to Lightning,正常品
-MUQW3FE/A,0013026025,Lightning to USB 1m MUQW3,Accy,#Cable,Lightning,正常品
-MW2G3TA/A,0013026042,30W USB-C Power Adapter MW2G3,Accy,#Power Adapter,USB-C,正常品
-MW2K3TA/A,0013026043,35W 雙 USB-C 充電器 MW2K3,Accy,#Power Adapter,USB-C,正常品
-MWN93FE/A,0013026060,iPhone 15 矽膠殼  粉紅色 MWN93,Accy,iPhone Case,iPhone 15,正常品
-MWNA3FE/A,0013026061,iPhone 15 矽膠殼 日照色 MWNA3,Accy,iPhone Case,iPhone 15,正常品
-MWNC3FE/A,0013026062,iPhone 15 矽膠殼 淡薄荷 MWNC3,Accy,iPhone Case,iPhone 15,正常品
-MWND3FE/A,0013026063,iPhone 15 矽膠殼 淡藍色 MWND3,Accy,iPhone Case,iPhone 15,正常品
-MWNE3FE/A,0013026064,iPhone 15+ 矽膠殼 粉紅色 MWNE3,Accy,iPhone Case,iPhone 15+,正常品
-MWNF3FE/A,0013026065,iPhone 15+ 矽膠殼 日照色 MWNF3,Accy,iPhone Case,iPhone 15+,正常品
-MWNG3FE/A,0013026066,iPhone 15+ 矽膠殼 淡薄荷 MWNG3,Accy,iPhone Case,iPhone 15+,正常品
-MWNH3FE/A,0013026067,iPhone 15+ 矽膠殼 淡藍色 MWNH3,Accy,iPhone Case,iPhone 15+,正常品
-MWNJ3FE/A,0013026068,iPhone 15 P 矽膠 粉紅色 MWNJ3,Accy,iPhone Case,iPhone 15 Pro,正常品
-MWNK3FE/A,0013026069,iPhone 15 P 矽膠 日照色 MWNK3,Accy,iPhone Case,iPhone 15 Pro,正常品
-MWNL3FE/A,0013026070,iPhone 15 P 矽膠 淡薄荷 MWNL3,Accy,iPhone Case,iPhone 15 Pro,正常品
-MWNM3FE/A,0013026071,iPhone 15 P 矽膠 淡藍色 MWNM3,Accy,iPhone Case,iPhone 15 Pro,正常品
-MWNN3FE/A,0013026072,iPhone 15 PM 矽膠 粉紅色 MWNN3,Accy,iPhone Case,iPhone 15 Pro Max,正常品
-MWNP3FE/A,0013026073,iPhone 15 PM 矽膠 日照色 MWNP3,Accy,iPhone Case,iPhone 15 Pro Max,正常品
-MWNQ3FE/A,0013026074,iPhone 15 PM 矽膠 淡薄荷 MWNQ3,Accy,iPhone Case,iPhone 15 Pro Max,正常品
-MWNR3FE/A,0013026075,iPhone 15 PM 矽膠 淡藍色 MWNR3,Accy,iPhone Case,iPhone 15 Pro Max,正常品
-MWVV3TA/A,0013026076,20W USB-C Adapter MWVV3,Accy,#Power Adapter,USB-C,正常品
-SLPJ2TA/A,0013026077,AC+ for MBA 13 M3 SLPJ2,Care,ACPP+,13 MacBook Air ACPP+,正常品
-SLPL2TA/A,0013026078,AC+ for MBA 15 M3 SLPL2,Care,ACPP+,15 MacBook Air ACPP+,正常品
-MUW23ZP/A,0013026183,Beats Solo4 WL 黑 MUW23,Audio,Beats,Solo 4,正常品
-MUW33ZP/A,0013026184,Beats Solo4 WL 粉 MUW33,Audio,Beats,Solo 4,正常品
-MUW43ZP/A,0013026185,Beats Solo4 WL 藍 MUW43,Audio,Beats,Solo 4,正常品
-MW693FE/A,0013026217,擦拭布 MW693,Accy,*CPU Accy,Other,正常品
-MW2H3TA/A,0013026218,35W 雙 USB-C 小型充電器 MW2H3,Accy,#Power Adapter,USB-C,正常品
-MW2L3TA/A,0013026219,96W USB-C Power Adapter MW2L3,Accy,#Power Adapter,USB-C,正常品
-MW2M3TA/A,0013026220,140W USB-C Adapter MW2M3,Accy,#Power Adapter,USB-C,正常品
-MW5J3FE/A,0013026221,Thunderbolt 4 Pro 1.8m MW5J3,Accy,#Cable,Thunderbolt,正常品
-MWML3FE/A,0013026222,USB-C to Pencil 轉接器 MWML3,Accy,#Connector,USB-C,正常品
-MVV83TA/A,0013026312,iPad Pro 11 WF 256 黑 MVV83,iPad,iPad Pro 11(M4),Wi-Fi iPad Pro 11 黑,正常品
-MVV93TA/A,0013026313,iPad Pro 11 WF 256 銀 MVV93,iPad,iPad Pro 11(M4),Wi-Fi iPad Pro 11 銀,正常品
-MVVC3TA/A,0013026314,iPad Pro 11 WF 512 黑 MVVC3,iPad,iPad Pro 11(M4),Wi-Fi iPad Pro 11 黑,正常品
-MVVD3TA/A,0013026315,iPad Pro 11 WF 512 銀 MVVD3,iPad,iPad Pro 11(M4),Wi-Fi iPad Pro 11 銀,正常品
-MVVE3TA/A,0013026316,iPad Pro 11 WF 1TB 黑 MVVE3,iPad,iPad Pro 11(M4),Wi-Fi iPad Pro 11 黑,正常品
-MVVF3TA/A,0013026317,iPad Pro 11 WF 1TB 銀 MVVF3,iPad,iPad Pro 11(M4),Wi-Fi iPad Pro 11 銀,正常品
-MVVG3TA/A,0013026318,iPad Pro 11 WF 2TB 黑 MVVG3,iPad,iPad Pro 11(M4),Wi-Fi iPad Pro 11 黑,正常品
-MVVH3TA/A,0013026319,iPad Pro 11 WF 2TB 銀 MVVH3,iPad,iPad Pro 11(M4),Wi-Fi iPad Pro 11 銀,正常品
-MVW13TA/A,0013026320,iPad Pro 11 CL 256 黑 MVW13,iPad,iPad Pro 11(M4),Cellular iPad Pro 11 黑,正常品
-MVW23TA/A,0013026321,iPad Pro 11 CL 256 銀 MVW23,iPad,iPad Pro 11(M4),Cellular iPad Pro 11 銀,正常品
-MVW33TA/A,0013026322,iPad Pro 11 CL 512 黑 MVW33,iPad,iPad Pro 11(M4),Cellular iPad Pro 11 黑,正常品
-MVW43TA/A,0013026323,iPad Pro 11 CL 512 銀 MVW43,iPad,iPad Pro 11(M4),Cellular iPad Pro 11 銀,正常品
-MVW53TA/A,0013026324,iPad Pro 11 CL 1TB 黑 MVW53,iPad,iPad Pro 11(M4),Cellular iPad Pro 11 黑,正常品
-MVW63TA/A,0013026325,iPad Pro 11 CL 1TB 銀 MVW63,iPad,iPad Pro 11(M4),Cellular iPad Pro 11 銀,正常品
-MVW73TA/A,0013026326,iPad Pro 11 CL 2TB 黑 MVW73,iPad,iPad Pro 11(M4),Cellular iPad Pro 11 黑,正常品
-MVW83TA/A,0013026327,iPad Pro 11 CL 2TB 銀 MVW83,iPad,iPad Pro 11(M4),Cellular iPad Pro 11 銀,正常品
-MVX23TA/A,0013026328,iPad Pro 13 WF 256 黑 MVX23,iPad,iPad Pro 13(M4),Wi-Fi iPad Pro 13 黑,正常品
-MVX33TA/A,0013026329,iPad Pro 13 WF 256 銀 MVX33,iPad,iPad Pro 13(M4),Wi-Fi iPad Pro 13 銀,正常品
-MVX43TA/A,0013026330,iPad Pro 13 WF 512 黑 MVX43,iPad,iPad Pro 13(M4),Wi-Fi iPad Pro 13 黑,正常品
-MVX53TA/A,0013026331,iPad Pro 13 WF 512 銀 MVX53,iPad,iPad Pro 13(M4),Wi-Fi iPad Pro 13 銀,正常品
-MVX63TA/A,0013026332,iPad Pro 13 WF 1TB 黑 MVX63,iPad,iPad Pro 13(M4),Wi-Fi iPad Pro 13 黑,正常品
-MVX73TA/A,0013026333,iPad Pro 13 WF 1TB 銀 MVX73,iPad,iPad Pro 13(M4),Wi-Fi iPad Pro 13 銀,正常品
-MVX83TA/A,0013026334,iPad Pro 13 WF 2TB 黑 MVX83,iPad,iPad Pro 13(M4),Wi-Fi iPad Pro 13 黑,正常品
-MVX93TA/A,0013026335,iPad Pro 13 WF 2TB 銀 MVX93,iPad,iPad Pro 13(M4),Wi-Fi iPad Pro 13 銀,正常品
-MVXR3TA/A,0013026336,iPad Pro 13 CL 256 黑 MVXR3,iPad,iPad Pro 13(M4),Cellular iPad Pro 13 黑,正常品
-MVXT3TA/A,0013026337,iPad Pro 13 CL 256 銀 MVXT3,iPad,iPad Pro 13(M4),Cellular iPad Pro 13 銀,正常品
-MVXU3TA/A,0013026338,iPad Pro 13 CL 512 黑 MVXU3,iPad,iPad Pro 13(M4),Cellular iPad Pro 13 黑,正常品
-MVXV3TA/A,0013026339,iPad Pro 13 CL 512 銀 MVXV3,iPad,iPad Pro 13(M4),Cellular iPad Pro 13 銀,正常品
-MVXW3TA/A,0013026340,iPad Pro 13 CL 1TB 黑 MVXW3,iPad,iPad Pro 13(M4),Cellular iPad Pro 13 黑,正常品
-MVXX3TA/A,0013026341,iPad Pro 13 CL 1TB 銀 MVXX3,iPad,iPad Pro 13(M4),Cellular iPad Pro 13 銀,正常品
-MVXY3TA/A,0013026342,iPad Pro 13 CL 2TB 黑 MVXY3,iPad,iPad Pro 13(M4),Cellular iPad Pro 13 黑,正常品
-MVY03TA/A,0013026343,iPad Pro 13 CL 2TB 銀 MVY03,iPad,iPad Pro 13(M4),Cellular iPad Pro 13 銀,正常品
-MWR63TA/A,0013026344,iPad Pro 11 WF 1T NTG 黑 MWR63,iPad,iPad Pro 11(M4),Wi-Fi iPad Pro 11 黑,正常品
-MWR73TA/A,0013026345,iPad Pro 11 WF 1T NTG 銀 MWR73,iPad,iPad Pro 11(M4),Wi-Fi iPad Pro 11 銀,正常品
-MWR83TA/A,0013026346,iPad Pro 11 WF 2T NTG 黑 MWR83,iPad,iPad Pro 11(M4),Wi-Fi iPad Pro 11 黑,正常品
-MWR93TA/A,0013026347,iPad Pro 11 WF 2T NTG 銀 MWR93,iPad,iPad Pro 11(M4),Wi-Fi iPad Pro 11 銀,正常品
-MWRF3TA/A,0013026348,iPad Pro 13 WF 1T NTG 黑 MWRF3,iPad,iPad Pro 13(M4),Wi-Fi iPad Pro 13 黑,正常品
-MWRG3TA/A,0013026349,iPad Pro 13 WF 1T NTG 銀 MWRG3,iPad,iPad Pro 13(M4),Wi-Fi iPad Pro 13 銀,正常品
-MWRH3TA/A,0013026350,iPad Pro 13 WF 2T NTG 黑 MWRH3,iPad,iPad Pro 13(M4),Wi-Fi iPad Pro 13 黑,正常品
-MWRJ3TA/A,0013026351,iPad Pro 13 WF 2T NTG 銀 MWRJ3,iPad,iPad Pro 13(M4),Wi-Fi iPad Pro 13 銀,正常品
-MWRP3TA/A,0013026352,iPad Pro 11 CL 1T NTG 黑 MWRP3,iPad,iPad Pro 11(M4),Cellular iPad Pro 11 黑,正常品
-MWRQ3TA/A,0013026353,iPad Pro 11 CL 1T NTG 銀 MWRQ3,iPad,iPad Pro 11(M4),Cellular iPad Pro 11 銀,正常品
-MWRR3TA/A,0013026354,iPad Pro 11 CL 2T NTG 黑 MWRR3,iPad,iPad Pro 11(M4),Cellular iPad Pro 11 黑,正常品
-MWRT3TA/A,0013026355,iPad Pro 11 CL 2T NTG 銀 MWRT3,iPad,iPad Pro 11(M4),Cellular iPad Pro 11 銀,正常品
-MWRY3TA/A,0013026356,iPad Pro 13 CL 1T NTG 黑 MWRY3,iPad,iPad Pro 13(M4),Cellular iPad Pro 13 黑,正常品
-MWT03TA/A,0013026357,iPad Pro 13 CL 1T NTG 銀 MWT03,iPad,iPad Pro 13(M4),Cellular iPad Pro 13 銀,正常品
-MWT13TA/A,0013026358,iPad Pro 13 CL 2T NTG 黑 MWT13,iPad,iPad Pro 13(M4),Cellular iPad Pro 13 黑,正常品
-MWT23TA/A,0013026359,iPad Pro 13 CL 2T NTG 銀 MWT23,iPad,iPad Pro 13(M4),Cellular iPad Pro 13 銀,正常品
-MUVW3TA/A,0013026360,Beats Solo Buds 黑 MUVW3,Audio,Beats,Solo Buds,正常品
-MUVX3TA/A,0013026361,Beats Solo Buds 紫 MUVX3,Audio,Beats,Solo Buds,正常品
-MUVY3TA/A,0013026362,Beats Solo Buds 灰 MUVY3,Audio,Beats,Solo Buds,正常品
-MUW03TA/A,0013026363,Beats Solo Buds 紅 MUW03,Audio,Beats,Solo Buds,正常品
-MX2D3TA/A,0013026364,Apple Pencil Pro MX2D3,Accy,*iPad Accy,Apple Pencil Pro,正常品
-MWR03TA/A,0013026365,Pro 11 M4 巧控鍵盤 白 MWR03,Accy,*iPad Accy,11 5th Keyboard,正常品
-MWR23TA/A,0013026366,Pro 11 M4 巧控鍵盤 黑 MWR23,Accy,*iPad Accy,11 5th Keyboard,正常品
-MWR43TA/A,0013026367,Pro 13 M4 巧控鍵盤 白 MWR43,Accy,*iPad Accy,12.9 7th Keyboard,正常品
-MWR53TA/A,0013026368,Pro 13 M4 巧控鍵盤 黑 MWR53,Accy,*iPad Accy,12.9 7th Keyboard,正常品
-SM2A2TA/A,0013026384,AC+ for iPad Air 13 1 SM2A2,Care,ACPP+,iPad Air 13 1th ACPP+,正常品
-SM2V2TA/A,0013026385,AC+ for iPad Air 11 4 SM2V2,Care,ACPP+,iPad Air 11 4th ACPP+,正常品
-SM2W2TA/A,0013026386,AC+ for iPad Pro 13 7 SM2W2,Care,ACPP+,iPad Pro 13 7th ACPP+,正常品
-SM2X2TA/A,0013026387,AC+ for iPad Pro 11 5 SM2X2,Care,ACPP+,iPad Pro 11 5th ACPP+,正常品
-MW443ZP/A,0013026478,Beats Pill 黑 MW443,Audio,Beats,Pill,正常品
-MW463ZP/A,0013026479,Beats Pill 金 MW463,Audio,Beats,Pill,正常品
-MWQW3ZP/A,0013026480,Beats Pill 紅 MWQW3,Audio,Beats,Pill,正常品
-2000130264820,0013026482,[i]Care iPad Air 13 一年_2090,Care,iCPP,[i]Care iPad Air 13 一年期_2090,正常品
-2000130264837,0013026483,[i]Care iPad Air 13 兩年_3290,Care,iCPP,[i]Care iPad Air 13 兩年期_3290,正常品
-2000130264844,0013026484,[i]Care iPad Pro 11 一年_3190,Care,iCPP,[i]Care iPad Pro 11 5 一年期_3190,正常品
-2000130264851,0013026485,[i]Care iPad Pro 11 兩年_4890,Care,iCPP,[i]Care iPad Pro 11 5 兩年期_4890,正常品
-2000130264868,0013026486,[i]Care iPad Pro 13 一年_3390,Care,iCPP,[i]Care iPad Pro 13 7 一年期_3390,正常品
-2000130264875,0013026487,[i]Care iPad Pro 13 兩年_5590,Care,iCPP,[i]Care iPad Pro 13 7 兩年期_5590,正常品
-MW2P3FE/A,0013026707,Lightning Digital AV MW2P3,Accy,#Connector,Lightning,正常品
-MW2Q3FE/A,0013026708,USB-C to 3.5mm 孔 轉接器 MW2Q3,Accy,EarPhone,3.5mm,正常品
-MW2R3ZA/A,0013026709,USB-C to Lightning 2m MW2R3,Accy,#Cable,USB-C to Lightning,正常品
-MW5H3FE/A,0013026710,Thunderbolt 4 Pro 3m MW5H3,Accy,#Cable,Thunderbolt,正常品
-MW5M3FE/A,0013026711,USB-C Digital AV MW5M3,Accy,#Connector,USB-C,正常品
-MW653TA/A,0013026712,USB-C to SD 讀卡機 MW653,Accy,#Connector,USB-C,正常品
-MX5J3FE/A,0013026713,Lightning to USB3 Camera MX5J3,Accy,#Connector,Lightning,正常品
-MWTY3FE/A,0013026714,EarPods For Lightning MWTY3,Accy,EarPhone,Lightning,正常品
-MWU53FE/A,0013026715,EarPods For 3.5mm MWU53,Accy,EarPhone,3.5mm,正常品
-MTJT3TA/A,0013026804,HomePod mini 午夜 MTJT3,Audio,HomePod,HomePod mini 午夜,正常品
-MW493FE/A,0013026814,USB-C Charge Cable (1m) MW493,Accy,#Cable,USB-C,正常品
-MW5L3FE/A,0013026815,USB-C to USB Adapter MW5L3,Accy,#Connector,USB-C,正常品
-MXN53TA/A,0013026816,70W USB-C Power Adapter MXN53,Accy,#Power Adapter,USB-C,正常品
-MYH93FE/A,0013026817,USB-C to Thunderbolt 2 MYH93,Accy,#Cable,Thunderbolt,正常品
-MYQT3FE/A,0013026818,USB-C Charge Cable (2m) MYQT3,Accy,#Cable,USB-C,正常品
-MYQY3ZP/A,0013026819,EarPods for USB-C MYQY3,Accy,EarPhone,USB-C,正常品
-MW5G3TA/A,0013026820,Apple TV Siri 遙控器 MW5G3,Accy,Apple TV,Apple TV Accy,正常品
-MYE73ZP/A,0013027361,iPhone 16 128GB 黑 MYE73,iPhone,iPhone 16,iPhone 16 黑,正常品
-MYE93ZP/A,0013027362,iPhone 16 128GB 白 MYE93,iPhone,iPhone 16,iPhone 16 白,正常品
-MYEA3ZP/A,0013027363,iPhone 16 128GB 粉 MYEA3,iPhone,iPhone 16,iPhone 16 粉,正常品
-MYEC3ZP/A,0013027364,iPhone 16 128GB 藍 MYEC3,iPhone,iPhone 16,iPhone 16 藍,正常品
-MYED3ZP/A,0013027365,iPhone 16 128GB 綠 MYED3,iPhone,iPhone 16,iPhone 16 綠,正常品
-MYEE3ZP/A,0013027366,iPhone 16 256GB 黑 MYEE3,iPhone,iPhone 16,iPhone 16 黑,正常品
-MYEF3ZP/A,0013027367,iPhone 16 256GB 白 MYEF3,iPhone,iPhone 16,iPhone 16 白,正常品
-MYEG3ZP/A,0013027368,iPhone 16 256GB 粉 MYEG3,iPhone,iPhone 16,iPhone 16 粉,正常品
-MYEH3ZP/A,0013027369,iPhone 16 256GB 藍 MYEH3,iPhone,iPhone 16,iPhone 16 藍,正常品
-MYEJ3ZP/A,0013027370,iPhone 16 256GB 綠 MYEJ3,iPhone,iPhone 16,iPhone 16 綠,正常品
-MYEK3ZP/A,0013027371,iPhone 16 512GB 黑 MYEK3,iPhone,iPhone 16,iPhone 16 黑,正常品
-MYEP3ZP/A,0013027372,iPhone 16 512GB 白 MYEP3,iPhone,iPhone 16,iPhone 16 白,正常品
-MYEQ3ZP/A,0013027373,iPhone 16 512GB 粉 MYEQ3,iPhone,iPhone 16,iPhone 16 粉,正常品
-MYER3ZP/A,0013027374,iPhone 16 512GB 藍 MYER3,iPhone,iPhone 16,iPhone 16 藍,正常品
-MYEU3ZP/A,0013027375,iPhone 16 512GB 綠 MYEU3,iPhone,iPhone 16,iPhone 16 綠,正常品
-MXVU3ZP/A,0013027376,iPhone 16+ 128GB 黑 MXVU3,iPhone,iPhone 16+,iPhone 16+ 黑,正常品
-MXVV3ZP/A,0013027377,iPhone 16+ 128GB 白 MXVV3,iPhone,iPhone 16+,iPhone 16+ 白,正常品
-MXVW3ZP/A,0013027378,iPhone 16+ 128GB 粉 MXVW3,iPhone,iPhone 16+,iPhone 16+ 粉,正常品
-MXVX3ZP/A,0013027379,iPhone 16+ 128GB 藍 MXVX3,iPhone,iPhone 16+,iPhone 16+ 藍,正常品
-MXVY3ZP/A,0013027380,iPhone 16+ 128GB 綠 MXVY3,iPhone,iPhone 16+,iPhone 16+ 綠,正常品
-MXWN3ZP/A,0013027381,iPhone 16+ 256GB 黑 MXWN3,iPhone,iPhone 16+,iPhone 16+ 黑,正常品
-MXWV3ZP/A,0013027382,iPhone 16+ 256GB 白 MXWV3,iPhone,iPhone 16+,iPhone 16+ 白,正常品
-MXY13ZP/A,0013027383,iPhone 16+ 256GB 粉 MXY13,iPhone,iPhone 16+,iPhone 16+ 粉,正常品
-MXY23ZP/A,0013027384,iPhone 16+ 256GB 藍 MXY23,iPhone,iPhone 16+,iPhone 16+ 藍,正常品
-MXY53ZP/A,0013027385,iPhone 16+ 256GB 綠 MXY53,iPhone,iPhone 16+,iPhone 16+ 綠,正常品
-MY1P3ZP/A,0013027386,iPhone 16+ 512GB 黑 MY1P3,iPhone,iPhone 16+,iPhone 16+ 黑,正常品
-MY1X3ZP/A,0013027387,iPhone 16+ 512GB 白 MY1X3,iPhone,iPhone 16+,iPhone 16+ 白,正常品
-MY253ZP/A,0013027388,iPhone 16+ 512GB 粉 MY253,iPhone,iPhone 16+,iPhone 16+ 粉,正常品
-MY2D3ZP/A,0013027389,iPhone 16+ 512GB 藍 MY2D3,iPhone,iPhone 16+,iPhone 16+ 藍,正常品
-MY2J3ZP/A,0013027390,iPhone 16+ 512GB 綠 MY2J3,iPhone,iPhone 16+,iPhone 16+ 綠,正常品
-MYND3ZP/A,0013027391,iPhone 16 Pro 128GB 黑 MYND3,iPhone,iPhone 16 Pro,iPhone 16 Pro 黑,正常品
-MYNE3ZP/A,0013027392,iPhone 16 Pro 128GB 白 MYNE3,iPhone,iPhone 16 Pro,iPhone 16 Pro 白,正常品
-MYNF3ZP/A,0013027393,iPhone 16 Pro 128GB 沙 MYNF3,iPhone,iPhone 16 Pro,iPhone 16 Pro 沙,正常品
-MYNG3ZP/A,0013027394,iPhone 16 Pro 128GB 原 MYNG3,iPhone,iPhone 16 Pro,iPhone 16 Pro 原,正常品
-MYNH3ZP/A,0013027395,iPhone 16 Pro 256GB 黑 MYNH3,iPhone,iPhone 16 Pro,iPhone 16 Pro 黑,正常品
-MYNJ3ZP/A,0013027396,iPhone 16 Pro 256GB 白 MYNJ3,iPhone,iPhone 16 Pro,iPhone 16 Pro 白,正常品
-MYNK3ZP/A,0013027397,iPhone 16 Pro 256GB 沙 MYNK3,iPhone,iPhone 16 Pro,iPhone 16 Pro 沙,正常品
-MYNL3ZP/A,0013027398,iPhone 16 Pro 256GB 原 MYNL3,iPhone,iPhone 16 Pro,iPhone 16 Pro 原,正常品
-MYNM3ZP/A,0013027399,iPhone 16 Pro 512GB 黑 MYNM3,iPhone,iPhone 16 Pro,iPhone 16 Pro 黑,正常品
-MYNN3ZP/A,0013027400,iPhone 16 Pro 512GB 白 MYNN3,iPhone,iPhone 16 Pro,iPhone 16 Pro 白,正常品
-MYNP3ZP/A,0013027401,iPhone 16 Pro 512GB 沙 MYNP3,iPhone,iPhone 16 Pro,iPhone 16 Pro 沙,正常品
-MYNQ3ZP/A,0013027402,iPhone 16 Pro 512GB 原 MYNQ3,iPhone,iPhone 16 Pro,iPhone 16 Pro 原,正常品
-MYNR3ZP/A,0013027403,iPhone 16 Pro 1TB 黑 MYNR3,iPhone,iPhone 16 Pro,iPhone 16 Pro 黑,正常品
-MYNT3ZP/A,0013027404,iPhone 16 Pro 1TB 白 MYNT3,iPhone,iPhone 16 Pro,iPhone 16 Pro 白,正常品
-MYNW3ZP/A,0013027405,iPhone 16 Pro 1TB 沙 MYNW3,iPhone,iPhone 16 Pro,iPhone 16 Pro 沙,正常品
-MYNX3ZP/A,0013027406,iPhone 16 Pro 1TB 原 MYNX3,iPhone,iPhone 16 Pro,iPhone 16 Pro 原,正常品
-MYWV3ZP/A,0013027407,iPhone 16 PM 256GB 黑 MYWV3,iPhone,iPhone 16 Pro Max,iPhone 16 Pro Max 黑,正常品
-MYWW3ZP/A,0013027408,iPhone 16 PM 256GB 白 MYWW3,iPhone,iPhone 16 Pro Max,iPhone 16 Pro Max 白,正常品
-MYWX3ZP/A,0013027409,iPhone 16 PM 256GB 沙 MYWX3,iPhone,iPhone 16 Pro Max,iPhone 16 Pro Max 沙,正常品
-MYWY3ZP/A,0013027410,iPhone 16 PM 256GB 原 MYWY3,iPhone,iPhone 16 Pro Max,iPhone 16 Pro Max 原,正常品
-MYX03ZP/A,0013027411,iPhone 16 PM 512GB 黑 MYX03,iPhone,iPhone 16 Pro Max,iPhone 16 Pro Max 黑,正常品
-MYX13ZP/A,0013027412,iPhone 16 PM 512GB 白 MYX13,iPhone,iPhone 16 Pro Max,iPhone 16 Pro Max 白,正常品
-MYX23ZP/A,0013027413,iPhone 16 PM 512GB 沙 MYX23,iPhone,iPhone 16 Pro Max,iPhone 16 Pro Max 沙,正常品
-MYX33ZP/A,0013027414,iPhone 16 PM 512GB 原 MYX33,iPhone,iPhone 16 Pro Max,iPhone 16 Pro Max 原,正常品
-MYX43ZP/A,0013027415,iPhone 16 PM 1TB 黑 MYX43,iPhone,iPhone 16 Pro Max,iPhone 16 Pro Max 黑,正常品
-MYX53ZP/A,0013027416,iPhone 16 PM 1TB 白 MYX53,iPhone,iPhone 16 Pro Max,iPhone 16 Pro Max 白,正常品
-MYX63ZP/A,0013027417,iPhone 16 PM 1TB 沙 MYX63,iPhone,iPhone 16 Pro Max,iPhone 16 Pro Max 沙,正常品
-MYX73ZP/A,0013027418,iPhone 16 PM 1TB 原 MYX73,iPhone,iPhone 16 Pro Max,iPhone 16 Pro Max 原,正常品
-MXE73TA/A,0013027419,AW SE 40 午鋁/午錶帶 S/M MXE73,Apple Watch,SE 2-GPS,40MM Sport,正常品
-MXE93TA/A,0013027420,AW SE 40 午鋁/午錶帶 M/L MXE93,Apple Watch,SE 2-GPS,40MM Sport,正常品
-MXEA3TA/A,0013027421,AW SE 40 午鋁/午夜環 MXEA3,Apple Watch,SE 2-GPS,40MM Loop,正常品
-MXEC3TA/A,0013027422,AW SE 40 銀鋁/寧帶 S/M MXEC3,Apple Watch,SE 2-GPS,40MM Sport,正常品
-MXED3TA/A,0013027423,AW SE 40 銀鋁/寧帶 M/L MXED3,Apple Watch,SE 2-GPS,40MM Sport,正常品
-MXEE3TA/A,0013027424,AW SE 40 銀鋁/青雲環 MXEE3,Apple Watch,SE 2-GPS,40MM Loop,正常品
-MXEF3TA/A,0013027425,AW SE 40 星鋁/星光帶 S/M MXEF3,Apple Watch,SE 2-GPS,40MM Sport,正常品
-MXEG3TA/A,0013027426,AW SE 40 星鋁/星光帶 M/L MXEG3,Apple Watch,SE 2-GPS,40MM Sport,正常品
-MXEH3TA/A,0013027427,AW SE 40 星鋁/湖綠環 MXEH3,Apple Watch,SE 2-GPS,40MM Loop,正常品
-MXEJ3TA/A,0013027428,AW SE 44 午鋁/午錶帶 S/M MXEJ3,Apple Watch,SE 2-GPS,44MM Sport,正常品
-MXEK3TA/A,0013027429,AW SE 44 午鋁/午錶帶 M/L MXEK3,Apple Watch,SE 2-GPS,44MM Sport,正常品
-MXEP3TA/A,0013027430,AW SE 44 午鋁/墨水環 MXEP3,Apple Watch,SE 2-GPS,40MM Loop,正常品
-MXEQ3TA/A,0013027431,AW SE 44 銀鋁/寧帶 S/M MXEQ3,Apple Watch,SE 2-GPS,44MM Sport,正常品
-MXER3TA/A,0013027432,AW SE 44 銀鋁/寧帶 M/L MXER3,Apple Watch,SE 2-GPS,44MM Sport,正常品
-MXET3TA/A,0013027433,AW SE 44 銀鋁/青雲環 MXET3,Apple Watch,SE 2-GPS,40MM Loop,正常品
-MXEU3TA/A,0013027434,AW SE 44 星鋁/星光帶 S/M MXEU3,Apple Watch,SE 2-GPS,44MM Sport,正常品
-MXEV3TA/A,0013027435,AW SE 44 星鋁/星光帶 M/L MXEV3,Apple Watch,SE 2-GPS,44MM Sport,正常品
-MXEW3TA/A,0013027436,AW SE 44 星鋁/湖綠環 MXEW3,Apple Watch,SE 2-GPS,40MM Loop,正常品
-MXGA3TA/A,0013027437,AW SE CL 40 午鋁/墨水環 MXGA3,Apple Watch,SE 2-Cell,40MM Loop,正常品
-MXGC3TA/A,0013027438,AW SE CL 40 午/午帶 S/M MXGC3,Apple Watch,SE 2-Cell,40MM Sport,正常品
-MXGD3TA/A,0013027439,AW SE CL 40 午/午帶 M/L MXGD3,Apple Watch,SE 2-Cell,40MM Sport,正常品
-MXGE3TA/A,0013027440,AW SE CL 40 銀鋁/青雲環MXGE3,Apple Watch,SE 2-Cell,40MM Loop,正常品
-MXGF3TA/A,0013027441,AW SE CL 40 銀/單寧 SM MXGF3,Apple Watch,SE 2-Cell,40MM Sport,正常品
-MXGG3TA/A,0013027442,AW SE CL 40 銀/單寧 ML MXGG3,Apple Watch,SE 2-Cell,40MM Sport,正常品
-MXGH3TA/A,0013027443,AW SE CL 40 星鋁/綠環 MXGH3,Apple Watch,SE 2-Cell,40MM Loop,正常品
-MXGJ3TA/A,0013027444,AW SE CL 40 星/星光 S/M MXGJ3,Apple Watch,SE 2-Cell,40MM Sport,正常品
-MXGK3TA/A,0013027445,AW SE CL 40 星/星光 M/L MXGK3,Apple Watch,SE 2-Cell,40MM Sport,正常品
-MXGL3TA/A,0013027446,AW SE CL 44 午/午帶 S/M MXGL3,Apple Watch,SE 2-Cell,44MM Sport,正常品
-MXGM3TA/A,0013027447,AW SE CL 44 午/午帶 M/L MXGM3,Apple Watch,SE 2-Cell,44MM Sport,正常品
-MXGN3TA/A,0013027448,AW SE CL 44 午鋁/墨水環 MXGN3,Apple Watch,SE 2-Cell,44MM Loop,正常品
-MXGP3TA/A,0013027449,AW SE CL 44 銀/單寧 SM MXGP3,Apple Watch,SE 2-Cell,44MM Sport,正常品
-MXGQ3TA/A,0013027450,AW SE CL 44 銀/單寧 ML MXGQ3,Apple Watch,SE 2-Cell,44MM Sport,正常品
-MXGR3TA/A,0013027451,AW SE CL 44 銀鋁/青雲環MXGR3,Apple Watch,SE 2-Cell,44MM Loop,正常品
-MXGT3TA/A,0013027452,AW SE CL 44 星/星帶 S/M MXGT3,Apple Watch,SE 2-Cell,44MM Sport,正常品
-MXGU3TA/A,0013027453,AW SE CL 44 星/星帶 M/L MXGU3,Apple Watch,SE 2-Cell,44MM Sport,正常品
-MXGV3TA/A,0013027454,AW SE CL 44 星鋁/綠環 MXGV3,Apple Watch,SE 2-Cell,44MM Loop,正常品
-MC7Q4TA/A,0013027455,AW S10 CL 46 原鈦/原米 S MC7Q4,Apple Watch,S10-鈦金屬,46MM 鈦金屬,正常品
-MC7R4TA/A,0013027456,AW S10 CL 46 石鈦/石米 S MC7R4,Apple Watch,S10-鈦金屬,46MM 鈦金屬,正常品
-MC7T4TA/A,0013027457,AW S10 CL 46 金鈦/金米 S MC7T4,Apple Watch,S10-鈦金屬,46MM 鈦金屬,正常品
-MWWA3TA/A,0013027458,AW S10 42 銀鋁/寧帶 S MWWA3,Apple Watch,S10-GPS,42MM Sport,正常品
-MWWC3TA/A,0013027459,AW S10 42 銀鋁/寧帶 L MWWC3,Apple Watch,S10-GPS,42MM Sport,正常品
-MWWD3TA/A,0013027460,AW S10 42 銀鋁/青雲環 MWWD3,Apple Watch,S10-GPS,42MM Loop,正常品
-MWWE3TA/A,0013027461,AW S10 42 黑鋁/黑帶 S/M MWWE3,Apple Watch,S10-GPS,42MM Sport,正常品
-MWWF3TA/A,0013027462,AW S10 42 黑鋁/黑帶 M/L MWWF3,Apple Watch,S10-GPS,42MM Sport,正常品
-MWWG3TA/A,0013027463,AW S10 42 黑鋁/墨水環 MWWG3,Apple Watch,S10-GPS,42MM Loop,正常品
-MWWH3TA/A,0013027464,AW S10 42 金鋁/胭粉 S/M MWWH3,Apple Watch,S10-GPS,42MM Sport,正常品
-MWWJ3TA/A,0013027465,AW S10 42 金鋁/胭粉 M/L MWWJ3,Apple Watch,S10-GPS,42MM Sport,正常品
-MWWK3TA/A,0013027466,AW S10 42 金鋁/梅李環 MWWK3,Apple Watch,S10-GPS,42MM Loop,正常品
-MWWL3TA/A,0013027467,AW S10 46 銀鋁/寧帶 SM MWWL3,Apple Watch,S10-GPS,46MM Sport,正常品
-MWWM3TA/A,0013027468,AW S10 46 銀鋁/寧帶 ML MWWM3,Apple Watch,S10-GPS,46MM Sport,正常品
-MWWN3TA/A,0013027469,AW S10 46 銀鋁/青雲環 MWWN3,Apple Watch,S10-GPS,46MM Loop,正常品
-MWWP3TA/A,0013027470,AW S10 46 黑鋁/黑帶 S/M MWWP3,Apple Watch,S10-GPS,46MM Sport,正常品
-MWWQ3TA/A,0013027471,AW S10 46 黑鋁/黑帶 M/L MWWQ3,Apple Watch,S10-GPS,46MM Sport,正常品
-MWWR3TA/A,0013027472,AW S10 46 黑鋁/墨水環 MWWR3,Apple Watch,S10-GPS,46MM Loop,正常品
-MWWT3TA/A,0013027473,AW S10 46 金鋁/胭粉帶 SM MWWT3,Apple Watch,S10-GPS,46MM Sport,正常品
-MWWU3TA/A,0013027474,AW S10 46 金鋁/胭粉帶 ML MWWU3,Apple Watch,S10-GPS,46MM Sport,正常品
-MWWV3TA/A,0013027475,AW S10 46 金鋁 /梅李環 MWWV3,Apple Watch,S10-GPS,46MM Loop,正常品
-MWX33TA/A,0013027476,AW S10 CL 42 銀鋁/寧 S MWX33,Apple Watch,S10-Cell,42MM Sport,正常品
-MWX43TA/A,0013027477,AW S10 CL 42 銀鋁/寧 L MWX43,Apple Watch,S10-Cell,42MM Sport,正常品
-MWX53TA/A,0013027478,AW S10 CL 42 銀鋁/青雲環 MWX53,Apple Watch,S10-Cell,42MM Loop,正常品
-MWX63TA/A,0013027479,AW S10 CL 42 黑鋁/黑帶 M MWX63,Apple Watch,S10-Cell,42MM Sport,正常品
-MWX73TA/A,0013027480,AW S10 CL 42 黑鋁/黑帶 L MWX73,Apple Watch,S10-Cell,42MM Sport,正常品
-MWX83TA/A,0013027481,AW S10 CL 42 黑鋁/墨水環 MWX83,Apple Watch,S10-Cell,42MM Loop,正常品
-MWX93TA/A,0013027482,AW S10 CL 42 金鋁/胭粉 S MWX93,Apple Watch,S10-Cell,42MM Sport,正常品
-MWXA3TA/A,0013027483,AW S10 CL 42 金鋁/胭粉 L MWXA3,Apple Watch,S10-Cell,42MM Sport,正常品
-MWXC3TA/A,0013027484,AW S10 CL 42 金鋁/梅李環 MWXC3,Apple Watch,S10-Cell,42MM Loop,正常品
-MWXD3TA/A,0013027485,AW S10 CL 42 原鈦/灰帶 S MWXD3,Apple Watch,S10-鈦金屬,42MM 鈦金屬,正常品
-MWXE3TA/A,0013027486,AW S10 CL 42 原鈦/灰帶 L MWXE3,Apple Watch,S10-鈦金屬,42MM 鈦金屬,正常品
-MWXF3TA/A,0013027487,AW S10 CL 42 原鈦/原米蘭 MWXF3,Apple Watch,S10-鈦金屬,42MM 鈦金屬,正常品
-MWXG3TA/A,0013027488,AW S10 CL 42 石鈦/黑帶 S MWXG3,Apple Watch,S10-鈦金屬,42MM 鈦金屬,正常品
-MWXH3TA/A,0013027489,AW S10 CL 42 石鈦/黑帶 L MWXH3,Apple Watch,S10-鈦金屬,42MM 鈦金屬,正常品
-MWY03TA/A,0013027490,AW S10 CL 46 銀鋁/寧 S MWY03,Apple Watch,S10-Cell,46MM Sport,正常品
-MWY13TA/A,0013027491,AW S10 CL 46 銀鋁/寧 L MWY13,Apple Watch,S10-Cell,46MM Sport,正常品
-MWY23TA/A,0013027492,AW S10 CL 46 銀鋁/青雲環 MWY23,Apple Watch,S10-Cell,46MM Loop,正常品
-MWY33TA/A,0013027493,AW S10 CL 46 黑鋁/黑帶 S MWY33,Apple Watch,S10-Cell,46MM Sport,正常品
-MWY43TA/A,0013027494,AW S10 CL 46 黑鋁/黑帶 L MWY43,Apple Watch,S10-Cell,46MM Sport,正常品
-MWY53TA/A,0013027495,AW S10 CL 46 黑鋁/墨水環 MWY53,Apple Watch,S10-Cell,46MM Loop,正常品
-MWY63TA/A,0013027496,AW S10 CL 46 金鋁/胭粉 S MWY63,Apple Watch,S10-Cell,46MM Sport,正常品
-MWY73TA/A,0013027497,AW S10 CL 46 金鋁/胭粉 L MWY73,Apple Watch,S10-Cell,46MM Sport,正常品
-MWY83TA/A,0013027498,AW S10 CL 46 金鋁/梅李環 MWY83,Apple Watch,S10-Cell,46MM Loop,正常品
-MWY93TA/A,0013027499,AW S10 CL 46 原鈦/灰帶 S MWY93,Apple Watch,S10-鈦金屬,46MM 鈦金屬,正常品
-MWYA3TA/A,0013027500,AW S10 CL 46 原鈦/灰帶 L MWYA3,Apple Watch,S10-鈦金屬,46MM 鈦金屬,正常品
-MWYC3TA/A,0013027501,AW S10 CL 46 原鈦/原米 L MWYC3,Apple Watch,S10-鈦金屬,46MM 鈦金屬,正常品
-MWYD3TA/A,0013027502,AW S10 CL 46 石鈦/黑帶 S MWYD3,Apple Watch,S10-鈦金屬,46MM 鈦金屬,正常品
-MWYE3TA/A,0013027503,AW S10 CL 46 石鈦/黑帶 L MWYE3,Apple Watch,S10-鈦金屬,46MM 鈦金屬,正常品
-MWYW3TA/A,0013027504,AW S10 CL 46 石鈦/石米 L MWYW3,Apple Watch,S10-鈦金屬,46MM 鈦金屬,正常品
-MWYX3TA/A,0013027505,AW S10 CL 46 金鈦/星光 S MWYX3,Apple Watch,S10-鈦金屬,46MM 鈦金屬,正常品
-MWYY3TA/A,0013027506,AW S10 CL 46 金鈦/星光 L MWYY3,Apple Watch,S10-鈦金屬,46MM 鈦金屬,正常品
-MX003TA/A,0013027507,AW S10 CL 46 金鈦/金米 L MX003,Apple Watch,S10-鈦金屬,46MM 鈦金屬,正常品
-MX053TA/A,0013027508,AW S10 CL 42 石鈦/石米蘭 MX053,Apple Watch,S10-鈦金屬,42MM 鈦金屬,正常品
-MX063TA/A,0013027509,AW S10 CL 42 金鈦/星光 S MX063,Apple Watch,S10-鈦金屬,42MM 鈦金屬,正常品
-MX073TA/A,0013027510,AW S10 CL 42 金鈦/星光 L MX073,Apple Watch,S10-鈦金屬,42MM 鈦金屬,正常品
-MX083TA/A,0013027511,AW S10 CL 42 金鈦/金米蘭 MX083,Apple Watch,S10-鈦金屬,42MM 鈦金屬,正常品
-MX4D3TA/A,0013027512,AW Ultra 原鈦/海洋藍 MX4D3,Apple Watch,Ultra 2,49MM Sports,正常品
-MX4E3TA/A,0013027513,AW Ultra 原鈦/高山麥環 S MX4E3,Apple Watch,Ultra 2,49MM Loop,正常品
-MX4F3TA/A,0013027514,AW Ultra 原鈦/高山麥環 M MX4F3,Apple Watch,Ultra 2,49MM Loop,正常品
-MX4H3TA/A,0013027515,AW Ultra 原鈦/高山麥環 L MX4H3,Apple Watch,Ultra 2,49MM Loop,正常品
-MX4J3TA/A,0013027516,AW Ultra 原鈦/越藍環 S/M MX4J3,Apple Watch,Ultra 2,49MM Loop,正常品
-MX4L3TA/A,0013027517,AW Ultra 原鈦/越藍環 M/L MX4L3,Apple Watch,Ultra 2,49MM Loop,正常品
-MX4M3TA/A,0013027518,AW Ultra 原鈦/原米蘭環 S MX4M3,Apple Watch,Ultra 2,49MM Loop,正常品
-MX4P3TA/A,0013027519,AW Ultra 黑鈦/海洋黑 MX4P3,Apple Watch,Ultra 2,49MM Sports,正常品
-MX4Q3TA/A,0013027520,AW Ultra 黑鈦/高山綠環 S MX4Q3,Apple Watch,Ultra 2,49MM Loop,正常品
-MX4R3TA/A,0013027521,AW Ultra 黑鈦/高山綠環 M MX4R3,Apple Watch,Ultra 2,49MM Loop,正常品
-MX4T3TA/A,0013027522,AW Ultra 黑鈦/高山綠環 L MX4T3,Apple Watch,Ultra 2,49MM Loop,正常品
-MX4U3TA/A,0013027523,AW Ultra 黑鈦/越黑環 S/M MX4U3,Apple Watch,Ultra 2,49MM Loop,正常品
-MX4V3TA/A,0013027524,AW Ultra 黑鈦/越黑環 M/L MX4V3,Apple Watch,Ultra 2,49MM Loop,正常品
-MX4W3TA/A,0013027525,AW Ultra 黑鈦/黑米蘭環 S MX4W3,Apple Watch,Ultra 2,49MM 不鏽鋼,正常品
-MX5R3TA/A,0013027526,AW Ultra 原鈦/原米蘭環 M MX5R3,Apple Watch,Ultra 2,49MM 不鏽鋼,正常品
-MX5T3TA/A,0013027527,AW Ultra 原鈦/原米蘭環 L MX5T3,Apple Watch,Ultra 2,49MM 不鏽鋼,正常品
-MX5U3TA/A,0013027528,AW Ultra 黑鈦/黑米蘭環 M MX5U3,Apple Watch,Ultra 2,49MM 不鏽鋼,正常品
-MX5V3TA/A,0013027529,AW Ultra 黑鈦/黑米蘭環 L MX5V3,Apple Watch,Ultra 2,49MM 不鏽鋼,正常品
-MXTW3FE/A,0013027554,49mm 越野錶環藍 M/L MXTW3,Accy,*Apple Watch Accy,Band 45mm Sport,正常品
-MCFC4PA/A,0013027555,Beats iPhone 16 磁吸殼 午夜黑,Accy,iPhone Case,iPhone 16,正常品
-MCFE4PA/A,0013027556,Beats iPhone 16 磁吸殼 波濤藍,Accy,iPhone Case,iPhone 16,正常品
-MCFD4PA/A,0013027557,Beats iPhone 16 磁吸殼 頂峰石,Accy,iPhone Case,iPhone 16,正常品
-MCFF4PA/A,0013027558,Beats iPhone 16 磁吸殼 夕陽紫,Accy,iPhone Case,iPhone 16,正常品
-MCFG4PA/A,0013027559,Beats iPhone 16+ 磁吸殼 午夜黑,Accy,iPhone Case,iPhone 16+,正常品
-MCFJ4PA/A,0013027560,Beats iPhone 16+ 磁吸殼 波濤藍,Accy,iPhone Case,iPhone 16+,正常品
-MCFH4PA/A,0013027561,Beats iPhone 16+ 磁吸殼 頂峰石,Accy,iPhone Case,iPhone 16+,正常品
-MCFK4PA/A,0013027562,Beats iPhone 16+ 磁吸殼 夕陽紫,Accy,iPhone Case,iPhone 16+,正常品
-MCFL4PA/A,0013027563,Beats iPhone 16P 磁吸殼 午夜黑,Accy,iPhone Case,iPhone 16 Pro,正常品
-MCFN4PA/A,0013027564,Beats iPhone 16P 磁吸殼 波濤藍,Accy,iPhone Case,iPhone 16 Pro,正常品
-MCFM4PA/A,0013027565,Beats iPhone 16P 磁吸殼 頂峰石,Accy,iPhone Case,iPhone 16 Pro,正常品
-MCFP4PA/A,0013027566,Beats iPhone 16P 磁吸殼 夕陽紫,Accy,iPhone Case,iPhone 16 Pro,正常品
-MCFQ4PA/A,0013027567,Beats iPhone 16M 磁吸殼 午夜黑,Accy,iPhone Case,iPhone 16 Pro Max,正常品
-MCFT4PA/A,0013027568,Beats iPhone 16M 磁吸殼 波濤藍,Accy,iPhone Case,iPhone 16 Pro Max,正常品
-MCFR4PA/A,0013027569,Beats iPhone 16M 磁吸殼 頂峰石,Accy,iPhone Case,iPhone 16 Pro Max,正常品
-MCFU4PA/A,0013027570,Beats iPhone 16M 磁吸殼 夕陽紫,Accy,iPhone Case,iPhone 16 Pro Max,正常品
-MA6A4FE/A,0013027571,iPhone 16 透明殼 MA6A4,Accy,iPhone Case,iPhone 16,正常品
-MA7D4FE/A,0013027572,iPhone 16+ 透明殼 MA7D4,Accy,iPhone Case,iPhone 16+,正常品
-MA7E4FE/A,0013027573,iPhone 16 Pro 透明殼 MA7E4,Accy,iPhone Case,iPhone 16 Pro,正常品
-MA7F4FE/A,0013027574,iPhone 16 PM 透明殼 MA7F4,Accy,iPhone Case,iPhone 16 Pro Max,正常品
-MYY13FE/A,0013027575,iPhone 16 矽膠殼 黑色 MYY13,Accy,iPhone Case,iPhone 16,正常品
-MYY53FE/A,0013027577,iPhone 16 矽膠殼 吊鐘 MYY53,Accy,iPhone Case,iPhone 16,正常品
-MYY83FE/A,0013027578,iPhone 16 矽膠殼 湖綠 MYY83,Accy,iPhone Case,iPhone 16,正常品
-MYY43FE/A,0013027579,iPhone 16 矽膠殼 梅李 MYY43,Accy,iPhone Case,iPhone 16,正常品
-MYY73FE/A,0013027580,iPhone 16 矽膠殼 楊桃 MYY73,Accy,iPhone Case,iPhone 16,正常品
-MYY33FE/A,0013027581,iPhone 16 矽膠殼 灰石 MYY33,Accy,iPhone Case,iPhone 16,正常品
-MYY63FE/A,0013027582,iPhone 16 矽膠殼 湛藍 MYY63,Accy,iPhone Case,iPhone 16,正常品
-MYY93FE/A,0013027583,iPhone 16+ 矽膠殼 黑色 MYY93,Accy,iPhone Case,iPhone 16+,正常品
-MYYA3FE/A,0013027584,iPhone 16+ 矽膠殼 單寧 MYYA3,Accy,iPhone Case,iPhone 16+,正常品
-MYYE3FE/A,0013027585,iPhone 16+ 矽膠殼 吊鐘 MYYE3,Accy,iPhone Case,iPhone 16+,正常品
-MYYH3FE/A,0013027586,iPhone 16+ 矽膠殼 湖綠 MYYH3,Accy,iPhone Case,iPhone 16+,正常品
-MYYD3FE/A,0013027587,iPhone 16+ 矽膠殼 梅李 MYYD3,Accy,iPhone Case,iPhone 16+,正常品
-MYYG3FE/A,0013027588,iPhone 16+ 矽膠殼 楊桃 MYYG3,Accy,iPhone Case,iPhone 16+,正常品
-MYYC3FE/A,0013027589,iPhone 16+ 矽膠殼 灰石 MYYC3,Accy,iPhone Case,iPhone 16+,正常品
-MYYF3FE/A,0013027590,iPhone 16+ 矽膠殼 湛藍 MYYF3,Accy,iPhone Case,iPhone 16+,正常品
-MYYJ3FE/A,0013027591,iPhone 16P 矽膠殼 黑色 MYYJ3,Accy,iPhone Case,iPhone 16 Pro,正常品
-MYYK3FE/A,0013027592,iPhone 16P 矽膠殼 單寧 MYYK3,Accy,iPhone Case,iPhone 16 Pro,正常品
-MYYN3FE/A,0013027593,iPhone 16P 矽膠殼 吊鐘 MYYN3,Accy,iPhone Case,iPhone 16 Pro,正常品
-MYYM3FE/A,0013027595,iPhone 16P 矽膠殼 梅李 MYYM3,Accy,iPhone Case,iPhone 16 Pro,正常品
-MYYQ3FE/A,0013027596,iPhone 16P 矽膠殼 楊桃 MYYQ3,Accy,iPhone Case,iPhone 16 Pro,正常品
-MYYL3FE/A,0013027597,iPhone 16P 矽膠殼 灰石 MYYL3,Accy,iPhone Case,iPhone 16 Pro,正常品
-MYYT3FE/A,0013027599,iPhone 16PM 矽膠殼 黑色 MYYT3,Accy,iPhone Case,iPhone 16 Pro Max,正常品
-MYYU3FE/A,0013027600,iPhone 16PM 矽膠殼 單寧 MYYU3,Accy,iPhone Case,iPhone 16 Pro Max,正常品
-MYYX3FE/A,0013027601,iPhone 16PM 矽膠殼 吊鐘 MYYX3,Accy,iPhone Case,iPhone 16 Pro Max,正常品
-MA7V4FE/A,0013027602,iPhone 16PM 矽膠殼 湖綠 MA7V4,Accy,iPhone Case,iPhone 16 Pro Max,正常品
-MYYW3FE/A,0013027603,iPhone 16PM 矽膠殼 梅李 MYYW3,Accy,iPhone Case,iPhone 16 Pro Max,正常品
-MA7U4FE/A,0013027604,iPhone 16PM 矽膠殼 楊桃 MA7U4,Accy,iPhone Case,iPhone 16 Pro Max,正常品
-MYYV3FE/A,0013027605,iPhone 16PM 矽膠殼 灰石 MYYV3,Accy,iPhone Case,iPhone 16 Pro Max,正常品
-MA6W4FE/A,0013027607,MagSafe 皮革卡套 黑色 MA6W4,Accy,*iPhone Accy,MagSafe,正常品
-MA7A4FE/A,0013027608,MagSafe 皮革卡套 黑莓 MA7A4,Accy,*iPhone Accy,MagSafe,正常品
-MA6Y4FE/A,0013027609,MagSafe 皮革卡套 深綠 MA6Y4,Accy,*iPhone Accy,MagSafe,正常品
-MA6X4FE/A,0013027610,MagSafe 皮革卡套 藍色 MA6X4,Accy,*iPhone Accy,MagSafe,正常品
-MX6X3TA/A,0013027611,MagSafe 充電器 1M MX6X3,Accy,#Cable,MagSafe,正常品
-MX6Y3TA/A,0013027612,MagSafe 充電器 2M MX6Y3,Accy,#Cable,MagSafe,正常品
-MAX94FE/A,0013027618,40mm 運動錶帶 黑色 S/M MAX94,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MAXA4FE/A,0013027619,40mm 運動錶帶 黑色 M/L MAXA4,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MAXC4FE/A,0013027620,40mm 運動錶帶 胭脂粉 S/M MAXC4,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MAXD4FE/A,0013027621,40mm 運動錶帶 胭脂粉 M/L MAXD4,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MAXF4FE/A,0013027622,40mm 運動錶帶 灰石色 S/M MAXF4,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MAXG4FE/A,0013027623,40mm 運動錶帶 灰石色 M/L MAXG4,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MAXH4FE/A,0013027624,40mm 運動錶環 梅李色 MAXH4,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MAXK4FE/A,0013027626,40mm 原米蘭錶環 MAXK4,Accy,*Apple Watch Accy,Band 40mm Milanese,正常品
-MAXL4FE/A,0013027627,40mm 金米蘭錶環 MAXL4,Accy,*Apple Watch Accy,Band 40mm Milanese,正常品
-MAXM4FE/A,0013027628,40mm 石米蘭錶環 MAXM4,Accy,*Apple Watch Accy,Band 40mm Milanese,正常品
-MC1G4FE/A,0013027629,40mm N 運動錶環 灰藍MC1G4,Accy,*Apple Watch Accy,Band 40mm Nike Sport Loop,正常品
-MC1H4FE/A,0013027630,40mm N 運動錶環 綠灰 MC1H4,Accy,*Apple Watch Accy,Band 40mm Nike Sport Loop,正常品
-MC1J4FE/A,0013027631,40mm N 運動錶環 藍紅 MC1J4,Accy,*Apple Watch Accy,Band 40mm Nike Sport Loop,正常品
-MC1L4FE/A,0013027632,40mm N 運動錶環 黑藍 MC1L4,Accy,*Apple Watch Accy,Band 40mm Nike Sport Loop,正常品
-MC1Q4FE/A,0013027633,40mm N 運動錶環 星粉 MC1Q4,Accy,*Apple Watch Accy,Band 40mm Nike Sport Loop,正常品
-MC1R4FE/A,0013027634,40mm N 運動錶帶 螢綠 S/M MC1R4,Accy,*Apple Watch Accy,Band 40mm Nike Sport,正常品
-MC1U4FE/A,0013027635,40mm N 運動錶帶 螢綠 M/L MC1U4,Accy,*Apple Watch Accy,Band 40mm Nike Sport,正常品
-MC1V4FE/A,0013027636,40mm N 運動錶帶 純鉑 S/M MC1V4,Accy,*Apple Watch Accy,Band 40mm Nike Sport,正常品
-MC1W4FE/A,0013027637,40mm N 運動錶帶 純鉑 M/L MC1W4,Accy,*Apple Watch Accy,Band 40mm Nike Sport,正常品
-MC1X4FE/A,0013027638,40mm N 運動錶帶 午夜 S/M MC1X4,Accy,*Apple Watch Accy,Band 40mm Nike Sport,正常品
-MC2A4FE/A,0013027639,40mm N 運動錶帶 午夜 M/L MC2A4,Accy,*Apple Watch Accy,Band 40mm Nike Sport,正常品
-MC2C4FE/A,0013027640,40mm N 運動錶帶 沙漠 S/M MC2C4,Accy,*Apple Watch Accy,Band 40mm Nike Sport,正常品
-MC2D4FE/A,0013027641,40mm N 運動錶帶 沙漠 M/L MC2D4,Accy,*Apple Watch Accy,Band 40mm Nike Sport,正常品
-MC2E4FE/A,0013027642,40mm N 運動錶帶 焰藍 S/M MC2E4,Accy,*Apple Watch Accy,Band 40mm Nike Sport,正常品
-MC2F4FE/A,0013027643,40mm N 運動錶帶 焰藍 M/L MC2F4,Accy,*Apple Watch Accy,Band 40mm Nike Sport,正常品
-MC2G4FE/A,0013027644,40mm N 運動錶帶 卡其 S/M MC2G4,Accy,*Apple Watch Accy,Band 40mm Nike Sport,正常品
-MC2H4FE/A,0013027645,40mm N 運動錶帶 卡其 M/L MC2H4,Accy,*Apple Watch Accy,Band 40mm Nike Sport,正常品
-MC2J4FE/A,0013027646,40mm N 運動錶帶 橙粉 S/M MC2J4,Accy,*Apple Watch Accy,Band 40mm Nike Sport,正常品
-MC2K4FE/A,0013027647,40mm N 運動錶帶 橙粉 M/L MC2K4,Accy,*Apple Watch Accy,Band 40mm Nike Sport,正常品
-MC7J4FE/A,0013027648,46mm 原米蘭錶環 S/M MC7J4,Accy,*Apple Watch Accy,Band 46mm Milanese,正常品
-MC7K4FE/A,0013027649,46mm 金米蘭錶環  S/M MC7K4,Accy,*Apple Watch Accy,Band 46mm Milanese,正常品
-MC7L4FE/A,0013027650,46mm 石米蘭錶環  S/M MC7L4,Accy,*Apple Watch Accy,Band 46mm Milanese,正常品
-MXKC3FE/A,0013027651,49mm 原鈦米蘭錶環 S MXKC3,Accy,*Apple Watch Accy,Band 49mm Milanese,正常品
-MXKD3FE/A,0013027652,49mm 原鈦米蘭錶環 M MXKD3,Accy,*Apple Watch Accy,Band 49mm Milanese,正常品
-MXKE3FE/A,0013027653,49mm 原鈦米蘭錶環 L MXKE3,Accy,*Apple Watch Accy,Band 49mm Milanese,正常品
-MXKF3FE/A,0013027654,49mm 黑鈦米蘭錶環 S MXKF3,Accy,*Apple Watch Accy,Band 49mm Milanese,正常品
-MXKG3FE/A,0013027655,49mm 黑鈦米蘭錶環 M MXKG3,Accy,*Apple Watch Accy,Band 49mm Milanese,正常品
-MXKH3FE/A,0013027656,49mm 黑鈦米蘭錶環 L MXKH3,Accy,*Apple Watch Accy,Band 49mm Milanese,正常品
-MXKW3FE/A,0013027657,42mm 運動錶環 墨水色 MXKW3,Accy,*Apple Watch Accy,Band 42mm Sport,正常品
-MXKX3FE/A,0013027658,42mm 運動錶環 青雲色 MXKX3,Accy,*Apple Watch Accy,Band 42mm Sport,正常品
-MXKY3FE/A,0013027659,42mm 運動錶環 梅李色 MXKY3,Accy,*Apple Watch Accy,Band 42mm Sport,正常品
-MXL33FE/A,0013027662,46mm 運動錶環 墨水色 MXL33,Accy,*Apple Watch Accy,Band 46mm Sport,正常品
-MXL43FE/A,0013027663,46mm 運動錶環 墨水色 XL MXL43,Accy,*Apple Watch Accy,Band 46mm Sport,正常品
-MXL53FE/A,0013027664,46mm 運動錶環 青雲色 MXL53,Accy,*Apple Watch Accy,Band 46mm Sport,正常品
-MXL63FE/A,0013027665,46mm 運動錶環 梅李色 MXL63,Accy,*Apple Watch Accy,Band 46mm Sport,正常品
-MXLG3FE/A,0013027674,42mm 運動錶帶 石灰色 S/M MXLG3,Accy,*Apple Watch Accy,Band 42mm Sport,正常品
-MXLH3FE/A,0013027675,42mm 運動錶帶 石灰色 M/L MXLH3,Accy,*Apple Watch Accy,Band 42mm Sport,正常品
-MXLJ3FE/A,0013027676,42mm 運動錶帶 黑色 S/M MXLJ3,Accy,*Apple Watch Accy,Band 42mm Sport,正常品
-MXLK3FE/A,0013027677,42mm 運動錶帶 黑色 M/L MXLK3,Accy,*Apple Watch Accy,Band 42mm Sport,正常品
-MXLL3FE/A,0013027678,42mm 運動錶帶 星光色 S/M MXLL3,Accy,*Apple Watch Accy,Band 42mm Sport,正常品
-MXLM3FE/A,0013027679,42mm 運動錶帶 星光色 M/L MXLM3,Accy,*Apple Watch Accy,Band 42mm Sport,正常品
-MXLN3FE/A,0013027680,42mm 運動錶帶 胭脂粉 S/M MXLN3,Accy,*Apple Watch Accy,Band 42mm Sport,正常品
-MXLP3FE/A,0013027681,42mm 運動錶帶 胭脂粉 M/L MXLP3,Accy,*Apple Watch Accy,Band 42mm Sport,正常品
-MXLX3FE/A,0013027688,46mm 運動錶帶 石灰色 S/M MXLX3,Accy,*Apple Watch Accy,Band 46mm Sport,正常品
-MXLY3FE/A,0013027689,46mm 運動錶帶 石灰色 M/L MXLY3,Accy,*Apple Watch Accy,Band 46mm Sport,正常品
-MXM23FE/A,0013027690,46mm 運動錶帶 黑色 S/M MXM23,Accy,*Apple Watch Accy,Band 46mm Sport,正常品
-MXM43FE/A,0013027691,46mm 運動錶帶 黑色 M/L MXM43,Accy,*Apple Watch Accy,Band 46mm Sport,正常品
-MXM53FE/A,0013027692,46mm 運動錶帶 黑色 XL MXM53,Accy,*Apple Watch Accy,Band 46mm Sport,正常品
-MXM63FE/A,0013027693,46mm 運動錶帶 星光色 S/M MXM63,Accy,*Apple Watch Accy,Band 46mm Sport,正常品
-MXM73FE/A,0013027694,46mm 運動錶帶 星光色 M/L MXM73,Accy,*Apple Watch Accy,Band 46mm Sport,正常品
-MXM83FE/A,0013027695,46mm 運動錶帶 胭脂粉 S/M MXM83,Accy,*Apple Watch Accy,Band 46mm Sport,正常品
-MXM93FE/A,0013027696,46mm 運動錶帶 胭脂粉 M/L MXM93,Accy,*Apple Watch Accy,Band 46mm Sport,正常品
-MXMM3FE/A,0013027697,42mm 原米蘭錶環 MXMM3,Accy,*Apple Watch Accy,Band 42mm Milanese,正常品
-MXMN3FE/A,0013027698,42mm 金米蘭錶環 MXMN3,Accy,*Apple Watch Accy,Band 42mm Milanese,正常品
-MXMP3FE/A,0013027699,42mm 石米蘭錶環 MXMP3,Accy,*Apple Watch Accy,Band 42mm Milanese,正常品
-MXMQ3FE/A,0013027700,46mm 原米蘭錶環 M/L MXMQ3,Accy,*Apple Watch Accy,Band 46mm Milanese,正常品
-MXMR3FE/A,0013027701,46mm 金米蘭錶環 M/L MXMR3,Accy,*Apple Watch Accy,Band 46mm Milanese,正常品
-MXMT3FE/A,0013027702,46mm 石米蘭錶環 M/L MXMT3,Accy,*Apple Watch Accy,Band 46mm Milanese,正常品
-MXMU3FE/A,0013027703,49mm 原鈦高山錶環 深綠 S MXMU3,Accy,*Apple Watch Accy,Band 49mm Alpine Loop,正常品
-MXMV3FE/A,0013027704,49mm 原鈦高山錶環 深綠 M MXMV3,Accy,*Apple Watch Accy,Band 49mm Alpine Loop,正常品
-MXMW3FE/A,0013027705,49mm 原鈦高山錶環 深綠 L MXMW3,Accy,*Apple Watch Accy,Band 49mm Alpine Loop,正常品
-MXMX3FE/A,0013027706,49mm 原鈦高山錶環 深藍 S MXMX3,Accy,*Apple Watch Accy,Band 49mm Alpine Loop,正常品
-MXMY3FE/A,0013027707,49mm 原鈦高山錶環 深藍 M MXMY3,Accy,*Apple Watch Accy,Band 49mm Alpine Loop,正常品
-MXN03FE/A,0013027708,49mm 原鈦高山錶環 深藍 L MXN03,Accy,*Apple Watch Accy,Band 49mm Alpine Loop,正常品
-MXN13FE/A,0013027709,49mm 原鈦高山錶環 小麥 S MXN13,Accy,*Apple Watch Accy,Band 49mm Alpine Loop,正常品
-MXN23FE/A,0013027710,49mm 原鈦高山錶環 小麥 M MXN23,Accy,*Apple Watch Accy,Band 49mm Alpine Loop,正常品
-MXN33FE/A,0013027711,49mm 原鈦高山錶環 小麥 L MXN33,Accy,*Apple Watch Accy,Band 49mm Alpine Loop,正常品
-MXTF3FE/A,0013027712,49mm 原鈦海洋錶帶 冰藍色 MXTF3,Accy,*Apple Watch Accy,Band 49mm Ocean Band,正常品
-MXTH3FE/A,0013027713,49mm 原鈦海洋錶帶 海藍色 MXTH3,Accy,*Apple Watch Accy,Band 49mm Ocean Band,正常品
-MXTL3FE/A,0013027714,49mm 原鈦海洋錶帶 黑色 MXTL3,Accy,*Apple Watch Accy,Band 49mm Ocean Band,正常品
-MXTN3FE/A,0013027715,49mm 原鈦越野錶環 綠 S/M MXTN3,Accy,*Apple Watch Accy,Band 49mm Trail Loop,正常品
-MXTP3FE/A,0013027716,49mm 原鈦越野錶環 綠 M/L MXTP3,Accy,*Apple Watch Accy,Band 49mm Trail Loop,正常品
-MXTQ3FE/A,0013027717,49mm 原鈦越野錶環 黑 S/M MXTQ3,Accy,*Apple Watch Accy,Band 49mm Trail Loop,正常品
-MXTR3FE/A,0013027718,49mm 原鈦越野錶環 黑 M/L MXTR3,Accy,*Apple Watch Accy,Band 49mm Trail Loop,正常品
-MXTT3FE/A,0013027719,49mm 原鈦越野錶環 黑 S/M MXTT3,Accy,*Apple Watch Accy,Band 49mm Trail Loop,正常品
-MXTX3FE/A,0013027720,42mm N 運動錶環 灰藍 MXTX3,Accy,*Apple Watch Accy,Band 42mm Nike Sport Loop,正常品
-MXTY3FE/A,0013027721,42mm N 運動錶環 綠灰 MXTY3,Accy,*Apple Watch Accy,Band 42mm Nike Sport Loop,正常品
-MXU03FE/A,0013027722,42mm N 運動錶環 藍紅 MXU03,Accy,*Apple Watch Accy,Band 42mm Nike Sport Loop,正常品
-MXU13FE/A,0013027723,46mm N 運動錶環 灰藍 MXU13,Accy,*Apple Watch Accy,Band 46mm Nike Sport Loop,正常品
-MXU33FE/A,0013027724,46mm N 運動錶環 綠灰 MXU33,Accy,*Apple Watch Accy,Band 46mm Nike Sport Loop,正常品
-MXU43FE/A,0013027725,46mm N 運動錶環 藍紅 MXU43,Accy,*Apple Watch Accy,Band 46mm Nike Sport Loop,正常品
-MXU53FE/A,0013027726,42mm N 運動錶帶 螢綠 S/M MXU53,Accy,*Apple Watch Accy,Band 42mm Nike Sport,正常品
-MXU63FE/A,0013027727,42mm N 運動錶帶 螢綠 M/L MXU63,Accy,*Apple Watch Accy,Band 42mm Nike Sport,正常品
-MXU73FE/A,0013027728,46mm N 運動錶帶 螢綠 S/M MXU73,Accy,*Apple Watch Accy,Band 46mm Nike Sport,正常品
-MXU83FE/A,0013027729,46mm N 運動錶帶 螢綠 M/L MXU83,Accy,*Apple Watch Accy,Band 46mm Nike Sport,正常品
-MYG03FE/A,0013027732,46mm 運動錶帶 午夜色 S/M MYG03,Accy,*Apple Watch Accy,Band 46mm Sport,正常品
-MYG13FE/A,0013027733,46mm 運動錶帶 午夜色 M/L MYG13,Accy,*Apple Watch Accy,Band 46mm Sport,正常品
-MYJ33FE/A,0013027736,40mm 運動錶帶 星光色 S/M MYJ33,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MYJ43FE/A,0013027737,40mm 運動錶帶 星光色 M/L MYJ43,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MYJ53FE/A,0013027738,40mm 運動錶帶 午夜色 S/M MYJ53,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MYJ63FE/A,0013027739,40mm 運動錶帶 午夜色 M/L MYJ63,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MYJ73FE/A,0013027740,40mm 運動錶環 墨水色 MYJ73,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MYJ83FE/A,0013027741,40mm 運動錶環 青雲色 MYJ83,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MYJA3FE/A,0013027743,42mm N 運動錶環 黑藍 MYJA3,Accy,*Apple Watch Accy,Band 42mm Nike Sport Loop,正常品
-MYJC3FE/A,0013027744,42mm N 運動錶環 星粉 MYJC3,Accy,*Apple Watch Accy,Band 42mm Nike Sport Loop,正常品
-MYJD3FE/A,0013027745,46mm N 運動錶環 黑藍 MYJD3,Accy,*Apple Watch Accy,Band 46mm Nike Sport Loop,正常品
-MYJE3FE/A,0013027746,46mm N 運動錶環 星粉 MYJE3,Accy,*Apple Watch Accy,Band 46mm Nike Sport Loop,正常品
-MYJM3FE/A,0013027747,42mm N 運動錶帶 純鉑 S/M MYJM3,Accy,*Apple Watch Accy,Band 42mm Nike Sport,正常品
-MYJN3FE/A,0013027748,42mm N 運動錶帶 純鉑 M/L MYJN3,Accy,*Apple Watch Accy,Band 42mm Nike Sport,正常品
-MYJP3FE/A,0013027749,42mm N 運動錶帶 午夜 S/M MYJP3,Accy,*Apple Watch Accy,Band 42mm Nike Sport,正常品
-MYJQ3FE/A,0013027750,42mm N 運動錶帶 午夜 M/L MYJQ3,Accy,*Apple Watch Accy,Band 42mm Nike Sport,正常品
-MYJR3FE/A,0013027751,42mm N 運動錶帶 沙漠 S/M MYJR3,Accy,*Apple Watch Accy,Band 42mm Nike Sport,正常品
-MYJT3FE/A,0013027752,42mm N 運動錶帶 沙漠 M/L MYJT3,Accy,*Apple Watch Accy,Band 42mm Nike Sport,正常品
-MYJW3FE/A,0013027753,42mm N 運動錶帶 藍焰 S/M MYJW3,Accy,*Apple Watch Accy,Band 42mm Nike Sport,正常品
-MYJX3FE/A,0013027754,42mm N 運動錶帶 藍焰 M/L MYJX3,Accy,*Apple Watch Accy,Band 42mm Nike Sport,正常品
-MYJY3FE/A,0013027755,42mm N 運動錶帶 卡其 S/M MYJY3,Accy,*Apple Watch Accy,Band 42mm Nike Sport,正常品
-MYL03FE/A,0013027756,42mm N 運動錶帶 卡其 M/L MYL03,Accy,*Apple Watch Accy,Band 42mm Nike Sport,正常品
-MYL23FE/A,0013027757,42mm N 運動錶帶 橙粉 S/M MYL23,Accy,*Apple Watch Accy,Band 42mm Nike Sport,正常品
-MYL33FE/A,0013027758,42mm N 運動錶帶 橙粉 M/L MYL33,Accy,*Apple Watch Accy,Band 42mm Nike Sport,正常品
-MYL43FE/A,0013027759,46mm N 運動錶帶 純鉑 S/M MYL43,Accy,*Apple Watch Accy,Band 46mm Nike Sport,正常品
-MYL53FE/A,0013027760,46mm N 運動錶帶 純鉑 M/L MYL53,Accy,*Apple Watch Accy,Band 46mm Nike Sport,正常品
-MYL63FE/A,0013027761,46mm N 運動錶帶 午夜 S/M MYL63,Accy,*Apple Watch Accy,Band 46mm Nike Sport,正常品
-MYL73FE/A,0013027762,46mm N 運動錶帶 午夜 M/L MYL73,Accy,*Apple Watch Accy,Band 46mm Nike Sport,正常品
-MYL83FE/A,0013027763,46mm N 運動錶帶 沙漠 S/M MYL83,Accy,*Apple Watch Accy,Band 46mm Nike Sport,正常品
-MYL93FE/A,0013027764,46mm N 運動錶帶 沙漠 M/L MYL93,Accy,*Apple Watch Accy,Band 46mm Nike Sport,正常品
-MYLA3FE/A,0013027765,46mm N 運動錶帶 藍焰 S/M MYLA3,Accy,*Apple Watch Accy,Band 46mm Nike Sport,正常品
-MYLC3FE/A,0013027766,46mm N 運動錶帶 藍焰 M/L MYLC3,Accy,*Apple Watch Accy,Band 46mm Nike Sport,正常品
-MYLD3FE/A,0013027767,46mm N 運動錶帶 卡其 S/M MYLD3,Accy,*Apple Watch Accy,Band 46mm Nike Sport,正常品
-MYLE3FE/A,0013027768,46mm N 運動錶帶 卡其 M/L MYLE3,Accy,*Apple Watch Accy,Band 46mm Nike Sport,正常品
-MYLF3FE/A,0013027769,46mm N 運動錶帶 橙粉 S/M MYLF3,Accy,*Apple Watch Accy,Band 46mm Nike Sport,正常品
-MYLG3FE/A,0013027770,46mm N 運動錶帶 橙粉 M/L MYLG3,Accy,*Apple Watch Accy,Band 46mm Nike Sport,正常品
-MYP83FE/A,0013027771,49mm 黑鈦海洋錶帶 冰藍色 MYP83,Accy,*Apple Watch Accy,Band 49mm Ocean Band,正常品
-MYPA3FE/A,0013027772,49mm 黑鈦海洋錶帶 海藍色 MYPA3,Accy,*Apple Watch Accy,Band 49mm Ocean Band,正常品
-MYPD3FE/A,0013027773,49mm 黑鈦海洋錶帶 黑色 MYPD3,Accy,*Apple Watch Accy,Band 49mm Ocean Band,正常品
-MYPQ3FE/A,0013027774,49mm 黑鈦高山錶環 深綠 S MYPQ3,Accy,*Apple Watch Accy,Band 49mm Alpine Loop,正常品
-MYPR3FE/A,0013027775,49mm 黑鈦高山錶環 深綠 M MYPR3,Accy,*Apple Watch Accy,Band 49mm Alpine Loop,正常品
-MYPT3FE/A,0013027776,49mm 黑鈦高山錶環 深綠 L MYPT3,Accy,*Apple Watch Accy,Band 49mm Alpine Loop,正常品
-MYPW3FE/A,0013027777,49mm 黑鈦高山錶環 深藍 S MYPW3,Accy,*Apple Watch Accy,Band 49mm Alpine Loop,正常品
-MYPX3FE/A,0013027778,49mm 黑鈦高山錶環 深藍 M MYPX3,Accy,*Apple Watch Accy,Band 49mm Alpine Loop,正常品
-MYPY3FE/A,0013027779,49mm 黑鈦高山錶環 深藍 L MYPY3,Accy,*Apple Watch Accy,Band 49mm Alpine Loop,正常品
-MYQ03FE/A,0013027780,49mm 黑鈦高山錶環 小麥 S MYQ03,Accy,*Apple Watch Accy,Band 49mm Alpine Loop,正常品
-MYQ13FE/A,0013027781,49mm 黑鈦高山錶環 小麥 M MYQ13,Accy,*Apple Watch Accy,Band 49mm Alpine Loop,正常品
-MYQ23FE/A,0013027782,49mm 黑鈦高山錶環 小麥 L MYQ23,Accy,*Apple Watch Accy,Band 49mm Alpine Loop,正常品
-MYQ33FE/A,0013027783,49mm 黑鈦越野錶環 綠 S/M MYQ33,Accy,*Apple Watch Accy,Band 49mm Trail Loop,正常品
-MYQ43FE/A,0013027784,49mm 黑鈦越野錶環 綠 M/L MYQ43,Accy,*Apple Watch Accy,Band 49mm Trail Loop,正常品
-MYQ53FE/A,0013027785,49mm 黑鈦越野錶環 黑 S/M MYQ53,Accy,*Apple Watch Accy,Band 49mm Trail Loop,正常品
-MYQ63FE/A,0013027786,49mm 黑鈦越野錶環 黑 M/L MYQ63,Accy,*Apple Watch Accy,Band 49mm Trail Loop,正常品
-MYQ73FE/A,0013027787,49mm 黑鈦越野錶環 藍 S/M MYQ73,Accy,*Apple Watch Accy,Band 49mm Trail Loop,正常品
-MYQ83FE/A,0013027788,49mm 黑鈦越野錶環 藍 M/L MYQ83,Accy,*Apple Watch Accy,Band 49mm Trail Loop,正常品
-SNHA2TA/A,0013027789,AC+ for iPhone 16 SNHA2,Care,ACPP+,iPhone 16 ACPP+,正常品
-SNHP2TA/A,0013027790,AC+ for iPhone 16 Plus SNHP2,Care,ACPP+,iPhone 16 Plus ACPP+,正常品
-SNHV2TA/A,0013027791,AC+ for iPhone 16 Pro SNHV2,Care,ACPP+,iPhone 16 Pro ACPP+,正常品
-SNJ22TA/A,0013027792,AC+ for iPhone 16 PM SNJ22,Care,ACPP+,iPhone 16 PM ACPP+,正常品
-SNMF2TA/A,0013027793,AC+ for AW S10 Aluminum SNMF2,Care,ACPP+,AW S10 ACPP+,正常品
-SNMG2TA/A,0013027794,AC+ for AW Hermes Ultra SNMG2,Care,ACPP+,AW Hermes Ultra ACPP+,正常品
-SNMH2TA/A,0013027795,AC+ for AW Hermes S10 SNMH2,Care,ACPP+,AW Hermes S10 ACPP+,正常品
-SNN72TA/A,0013027796,AC+ for AW S10 Titanium SNN72,Care,ACPP+,AW S10 鈦金屬 ACPP+,正常品
-MXP63TA/A,0013027950,AirPods 第四代 MXP63,AirPods,AirPods 4,AirPods 第四代,正常品
-MXP93TA/A,0013027951,AirPods 第四代 降噪 MXP93,AirPods,AirPods 4,AirPods 第四代 ANC,正常品
-MWW43TA/A,0013027952,AirPods Max 午夜 MWW43,AirPods,AirPods Max (USB-C),AirPods Max,正常品
-MWW53TA/A,0013027953,AirPods Max 星光 MWW53,AirPods,AirPods Max (USB-C),AirPods Max,正常品
-MWW63TA/A,0013027954,AirPods Max 藍 MWW63,AirPods,AirPods Max (USB-C),AirPods Max,正常品
-MWW73TA/A,0013027955,AirPods Max 橙 MWW73,AirPods,AirPods Max (USB-C),AirPods Max,正常品
-MWW83TA/A,0013027956,AirPods Max 紫 MWW83,AirPods,AirPods Max (USB-C),AirPods Max,正常品
-2000130280080,0013028008,[i]Care AirPods 4/4降 兩年_990,Care,iCPP,[i]Care AirPods 4/4降 兩年_990,正常品
-SNGN2TA/A,0013028066,AC+ for iPad mini A17 P SNGN2,Care,ACPP+,iPad/iPad Mini ACPP+,正常品
-MXN63TA/A,0013028067,iPad mini WF 128G 太空灰 MXN63,iPad,iPad mini(A17 Pro),Wi-Fi  iPad mini 8.3 灰,正常品
-MXN73TA/A,0013028068,iPad mini WF 128G 藍 MXN73,iPad,iPad mini(A17 Pro),Wi-Fi  iPad mini 8.3 藍,正常品
-MXN83TA/A,0013028069,iPad mini WF 128G 星光 MXN83,iPad,iPad mini(A17 Pro),Wi-Fi  iPad mini 8.3 星,正常品
-MXN93TA/A,0013028070,iPad mini WF 128G 紫 MXN93,iPad,iPad mini(A17 Pro),Wi-Fi  iPad mini 8.3 紫,正常品
-MXNA3TA/A,0013028071,iPad mini WF 256G 太空灰 MXNA3,iPad,iPad mini(A17 Pro),Wi-Fi  iPad mini 8.3 灰,正常品
-MXNC3TA/A,0013028072,iPad mini WF 256G 藍 MXNC3,iPad,iPad mini(A17 Pro),Wi-Fi  iPad mini 8.3 藍,正常品
-MXND3TA/A,0013028073,iPad mini WF 256G 星光 MXND3,iPad,iPad mini(A17 Pro),Wi-Fi  iPad mini 8.3 星,正常品
-MXNE3TA/A,0013028074,iPad mini WF 256G 紫 MXNE3,iPad,iPad mini(A17 Pro),Wi-Fi  iPad mini 8.3 紫,正常品
-MXPN3TA/A,0013028075,iPad mini 5G 128G 太空灰 MXPN3,iPad,iPad mini(A17 Pro),Cellular iPad mini 8.3 灰,正常品
-MXPP3TA/A,0013028076,iPad mini 5G 128G 藍 MXPP3,iPad,iPad mini(A17 Pro),Cellular iPad mini 8.3 藍,正常品
-MXPQ3TA/A,0013028077,iPad mini 5G 128G 星光 MXPQ3,iPad,iPad mini(A17 Pro),Cellular iPad mini 8.3 星,正常品
-MXPR3TA/A,0013028078,iPad mini 5G 128G 紫 MXPR3,iPad,iPad mini(A17 Pro),Cellular iPad mini 8.3 紫,正常品
-MXPT3TA/A,0013028079,iPad mini 5G 256G 太空灰 MXPT3,iPad,iPad mini(A17 Pro),Cellular iPad mini 8.3 灰,正常品
-MXPW3TA/A,0013028080,iPad mini 5G 256G 藍 MXPW3,iPad,iPad mini(A17 Pro),Cellular iPad mini 8.3 藍,正常品
-MXPX3TA/A,0013028081,iPad mini 5G 256G 星光 MXPX3,iPad,iPad mini(A17 Pro),Cellular iPad mini 8.3 星,正常品
-MXPY3TA/A,0013028082,iPad mini 5G 256G 紫 MXPY3,iPad,iPad mini(A17 Pro),Cellular iPad mini 8.3 紫,正常品
-MYGY3TA/A,0013028083,iPad mini WF 512G 太空灰 MYGY3,iPad,iPad mini(A17 Pro),Wi-Fi  iPad mini 8.3 灰,正常品
-MYH13TA/A,0013028084,iPad mini WF 512G 藍 MYH13,iPad,iPad mini(A17 Pro),Wi-Fi  iPad mini 8.3 藍,正常品
-MYH23TA/A,0013028085,iPad mini WF 512G 星光 MYH23,iPad,iPad mini(A17 Pro),Wi-Fi  iPad mini 8.3 星,正常品
-MYH33TA/A,0013028086,iPad mini WF 512G 紫 MYH33,iPad,iPad mini(A17 Pro),Wi-Fi  iPad mini 8.3 紫,正常品
-MYHC3TA/A,0013028087,iPad mini 5G 512G 太空灰 MYHC3,iPad,iPad mini(A17 Pro),Cellular iPad mini 8.3 灰,正常品
-MYHD3TA/A,0013028088,iPad mini 5G 512G 藍 MYHD3,iPad,iPad mini(A17 Pro),Cellular iPad mini 8.3 藍,正常品
-MYHE3TA/A,0013028089,iPad mini 5G 512G 星光 MYHE3,iPad,iPad mini(A17 Pro),Cellular iPad mini 8.3 星,正常品
-MYHF3TA/A,0013028090,iPad mini 5G 512G 紫 MYHF3,iPad,iPad mini(A17 Pro),Cellular iPad mini 8.3 紫,正常品
-MWUC3TA/A,0013028133,M4 iMac 24 8核 256 銀 MWUC3,CPU,IMAC,iMac 24 M4 256G,正常品
-MWUE3TA/A,0013028134,M4 iMac 24 8核 256 綠 MWUE3,CPU,IMAC,iMac 24 M4 256G,正常品
-MWUF3TA/A,0013028135,M4 iMac 24 8核 256 藍 MWUF3,CPU,IMAC,iMac 24 M4 256G,正常品
-MWUG3TA/A,0013028136,M4 iMac 24 8核 256 粉 MWUG3,CPU,IMAC,iMac 24 M4 256G,正常品
-MWUU3TA/A,0013028137,M4 iMac 24 10C 16 256 銀 MWUU3,CPU,IMAC,iMac 24 M4 256G,正常品
-MWUY3TA/A,0013028138,M4 iMac 24 10C 16 256 綠 MWUY3,CPU,IMAC,iMac 24 M4 256G,正常品
-MWV13TA/A,0013028139,M4 iMac 24 10C 16 256 藍 MWV13,CPU,IMAC,iMac 24 M4 256G,正常品
-MWV43TA/A,0013028140,M4 iMac 24 10C 16 256 粉 MWV43,CPU,IMAC,iMac 24 M4 256G,正常品
-MD3H4TA/A,0013028141,M4 iMac 24 10 16 256NT銀 MD3H4,CPU,IMAC,iMac 24 M4 256G,正常品
-MWUV3TA/A,0013028142,M4 iMac 24 10C 16 512 銀 MWUV3,CPU,IMAC,iMac 24 M4 512G,正常品
-MWV03TA/A,0013028143,M4 iMac 24 10C 16 512 綠 MWV03,CPU,IMAC,iMac 24 M4 512G,正常品
-MWV33TA/A,0013028144,M4 iMac 24 10C 16 512 藍 MWV33,CPU,IMAC,iMac 24 M4 512G,正常品
-MWV53TA/A,0013028145,M4 iMac 24 10C 16 512 粉 MWV53,CPU,IMAC,iMac 24 M4 512G,正常品
-MCR24TA/A,0013028146,M4 iMac 24 10C 24 512 銀 MCR24,CPU,IMAC,iMac 24 M4 512G,正常品
-MD2Q4TA/A,0013028147,M4 iMac 24 10C 24 512 綠 MD2Q4,CPU,IMAC,iMac 24 M4 512G,正常品
-MD2T4TA/A,0013028148,M4 iMac 24 10C 24 512 藍 MD2T4,CPU,IMAC,iMac 24 M4 512G,正常品
-MD2U4TA/A,0013028149,M4 iMac 24 10C 24 512 粉 MD2U4,CPU,IMAC,iMac 24 M4 512G,正常品
-MXCK3TA/A,0013028150,Magic Keyboard Touch ID MXCK3,Accy,*CPU Accy,Keyboard,正常品
-MXCL3TA/A,0013028151,Magic Keyboard MXCL3,Accy,*CPU Accy,Keyboard,正常品
-MXK53TA/A,0013028152,Magic Mouse 白 MXK53,Accy,*CPU Accy,Mouse,正常品
-MXK63TA/A,0013028153,Magic Mouse 黑 MXK63,Accy,*CPU Accy,Mouse,正常品
-MXK73TA/A,0013028154,Magic Keyboard 數 ID 白 MXK73,Accy,*CPU Accy,Keyboard 2,正常品
-MXK83TA/A,0013028155,Magic Keyboard 數 ID 黑 MXK83,Accy,*CPU Accy,Keyboard 2,正常品
-MXK93TA/A,0013028156,Magic Trackpad 白 MXK93,Accy,*CPU Accy,Trackpad,正常品
-MXKA3TA/A,0013028157,Magic Trackpad 黑 MXKA3,Accy,*CPU Accy,Trackpad,正常品
-SR1A2TA/A,0013028158,AC+ for iMac M4 SR1A2,Care,ACPP+,iMac ACPP+,正常品
-MU9D3TA/A,0013028159,M4 Mac mini 10核 16 256 MU9D3,CPU,MAC MINI,Mac mini M4 256G,正常品
-MU9E3TA/A,0013028160,M4 Mac mini 10核 16 512 MU9E3,CPU,MAC MINI,Mac mini M4 512G,正常品
-MCYT4TA/A,0013028161,M4 Mac mini 10核 24 512 MCYT4,CPU,MAC MINI,Mac mini M4 512G,正常品
-MCX44TA/A,0013028162,M4P Mac mini 16核 24 512 MCX44,CPU,MAC MINI,Mac mini M4 512G,正常品
-MC9C4FE/A,0013028163,Thunderbolt 5 Pro 1m MC9C4,Accy,*CPU Accy,Thunderbolt,正常品
-SR1C2TA/A,0013028164,AC+ for Mac mini M4 SR1C2,Care,ACPP+,Mac mini ACPP+,正常品
-MCX04TA/A,0013028185,M4 MBP 14 24G 1TB 黑 MCX04,CPU,MBP 14 M4,MacBook Pro M4 24G 1TB 黑,正常品
-MCX14TA/A,0013028186,M4 MBP 14 24G 1TB 銀 MCX14,CPU,MBP 14 M4,MacBook Pro M4 24G 1TB 銀,正常品
-MW2V3TA/A,0013028187,M4 MBP 14 16G 1TB 黑 MW2V3,CPU,MBP 14 M4,MacBook Pro M4 16G 1TB 黑,正常品
-MW2X3TA/A,0013028188,M4 MBP 14 16G 1TB 銀 MW2X3,CPU,MBP 14 M4,MacBook Pro M4 16G 1TB 銀,正常品
-MW2U3TA/A,0013028189,M4 MBP 14 512GB 黑 MW2U3,CPU,MBP 14 M4,MacBook Pro M4 16G 512G 黑,正常品
-MW2W3TA/A,0013028190,M4 MBP 14 512GB 銀 MW2W3,CPU,MBP 14 M4,MacBook Pro M4 16G 512G 銀,正常品
-MX2E3TA/A,0013028191,M4P MBP 14 512GB 銀 MX2E3,CPU,MBP 14 M4 Pro&Max,MacBook Pro M4Pro 24G 512G 銀,正常品
-MX2H3TA/A,0013028192,M4P MBP 14 512GB 黑 MX2H3,CPU,MBP 14 M4 Pro&Max,MacBook Pro M4Pro 24G 512G 黑,正常品
-MX2J3TA/A,0013028193,M4P MBP 14 1TB 黑 MX2J3,CPU,MBP 14 M4 Pro&Max,MacBook Pro M4Pro 24G 1TB 黑,正常品
-MX2F3TA/A,0013028194,M4P MBP 14 1TB 銀 MX2F3,CPU,MBP 14 M4 Pro&Max,MacBook Pro M4Pro 24G 1TB 銀,正常品
-MX2G3TA/A,0013028195,M4M MBP 14 1TB 銀 MX2G3,CPU,MBP 14 M4 Pro&Max,MacBook Pro M4Max 36G 1TB 銀,正常品
-MX2K3TA/A,0013028196,M4M MBP 14 1TB 黑 MX2K3,CPU,MBP 14 M4 Pro&Max,MacBook Pro M4Max 36G 1TB 黑,正常品
-MX2T3TA/A,0013028197,M4P MBP 16 24G 512G 銀 MX2T3,CPU,MBP 16 M4 Pro&Max,MacBook Pro M4Pro 24G 512G 銀,正常品
-MX2U3TA/A,0013028198,M4P MBP 16 48G 512G 銀 MX2U3,CPU,MBP 16 M4 Pro&Max,MacBook Pro M4Pro 48G 512G 銀,正常品
-MX2V3TA/A,0013028199,M4M MBP 16 36G 1TB 銀 MX2V3,CPU,MBP 16 M4 Pro&Max,MacBook Pro M4Max 36G 1TB 銀,正常品
-MX2W3TA/A,0013028200,M4M MBP 16 48G 1TB 銀 MX2W3,CPU,MBP 16 M4 Pro&Max,MacBook Pro M4Max 48G 1TB 銀,正常品
-MX2X3TA/A,0013028201,M4P MBP 16 24G 512 黑 MX2X3,CPU,MBP 16 M4 Pro&Max,MacBook Pro M4Pro 24G 512G 黑,正常品
-MX2Y3TA/A,0013028202,M4P MBP 16 48G 512 黑 MX2Y3,CPU,MBP 16 M4 Pro&Max,MacBook Pro M4Pro 48G 512G 黑,正常品
-MX303TA/A,0013028203,M4M MBP 16 36G 1T 黑 MX303,CPU,MBP 16 M4 Pro&Max,MacBook Pro M4Max 36G 1TB 黑,正常品
-MX313TA/A,0013028204,M4M MBP 16 48G 1T 黑 MX313,CPU,MBP 16 M4 Pro&Max,MacBook Pro M4Max 48G 1TB 黑,正常品
-SR172TA/A,0013028205,AC+ for MBP 14 M4 SR172,Care,ACPP+,14 MacBook Pro ACPP+,正常品
-SR182TA/A,0013028206,AC+ for MBP 14 M4P/M4M SR182,Care,ACPP+,14 MacBook Pro ACPP+,正常品
-SR192TA/A,0013028207,AC+ for MBP 16 M4P/M4M SR192,Care,ACPP+,16 MacBook Pro ACPP+,正常品
-MW613FE/A,0013028324,USB-C to MagSafe 3 2m MW613,Accy,#Cable,MagSafe,正常品
-MX763FE/A,0013028325,Apple Pencil 替換筆尖 MX763,Accy,*iPad Accy,Other,正常品
-MWK93FE/A,0013028380,iPad Air 13 聰穎雙夾 灰 MWK93,Accy,iPad Case,iPad 10.9,正常品
-Z1DT000GW,0013028481,M4 MBP 14 16G 1TB 黑 Z1DT,CPU,MBP 14 M4,MacBook Pro M4 16G 1TB 黑,正常品
-MXCJ3TA/A,0013028487,Magic Keyboard 數 MXCJ3,Accy,*CPU Accy,Keyboard 2,正常品
-MXN43TA/A,0013028488,Apple Pencil 2代 MXN43,Accy,*iPad Accy,Apple Pencil 2代,正常品
-MW6A3TA/A,0013028489,AW 磁性充電連接線 1m MW6A3,Accy,#Cable,Apple Watch,正常品
-Z1FS000W1,0013028491,M4M MBP 16 128G 8T 銀 Z1FS,CPU,MBP 16 M4 Pro&Max,MacBook Pro M4Max 16G 8TB 銀,正常品
-Z1FW001VR,0013028492,M4M MBP 16 128G 8T 黑 Z1FW,CPU,MBP 16 M4 Pro&Max,MacBook Pro M4Max 16G 8TB 黑,正常品
-MD3N4FE/A,0013028499,iPhone 16e 矽膠殼 黑 MD3N4,Accy,iPhone Case,iPhone 16e,正常品
-MD3P4FE/A,0013028500,iPhone 16e 矽膠殼 白 MD3P4,Accy,iPhone Case,iPhone 16e,正常品
-MD3Q4FE/A,0013028501,iPhone 16e 矽膠殼 冬藍 MD3Q4,Accy,iPhone Case,iPhone 16e,正常品
-MD3W4FE/A,0013028502,iPhone 16e 矽膠殼 吊鐘花 MD3W4,Accy,iPhone Case,iPhone 16e,正常品
-MD3X4FE/A,0013028503,iPhone 16e 矽膠殼 湖綠 MD3X4,Accy,iPhone Case,iPhone 16e,正常品
-MD1Q4ZP/A,0013028504,iPhone 16e 128GB 黑 MD1Q4,iPhone,iPhone 16e,iPhone 16e 黑,正常品
-MD1R4ZP/A,0013028505,iPhone 16e 128GB 白 MD1R4,iPhone,iPhone 16e,iPhone 16e 白,正常品
-MD1T4ZP/A,0013028506,iPhone 16e 256GB 黑 MD1T4,iPhone,iPhone 16e,iPhone 16e 黑,正常品
-MD1W4ZP/A,0013028507,iPhone 16e 256GB 白 MD1W4,iPhone,iPhone 16e,iPhone 16e 白,正常品
-MD1X4ZP/A,0013028508,iPhone 16e 512GB 黑 MD1X4,iPhone,iPhone 16e,iPhone 16e 黑,正常品
-MD274ZP/A,0013028509,iPhone 16e 512GB 白 MD274,iPhone,iPhone 16e,iPhone 16e 白,正常品
-ST3V2TA/A,0013028510,AC+ for iPhone 16e ST3V2,Care,ACPP+,iPhone 16e ACPP+,正常品
-MD3Y4TA/A,0013028574,iPad 11 WiFi 128 銀 MD3Y4,iPad,iPad(A16),WiFi iPad 11 銀,正常品
-MD4A4TA/A,0013028575,iPad 11 WiFi 128 藍 MD4A4,iPad,iPad(A16),WiFi iPad 11 藍,正常品
-MD4D4TA/A,0013028576,iPad 11 WiFi 128 黃 MD4D4,iPad,iPad(A16),WiFi iPad 11 黃,正常品
-MD4E4TA/A,0013028577,iPad 11 WiFi 128 粉 MD4E4,iPad,iPad(A16),WiFi iPad 11 粉,正常品
-MD4G4TA/A,0013028578,iPad 11 WiFi 256 銀 MD4G4,iPad,iPad(A16),WiFi iPad 11 銀,正常品
-MD4H4TA/A,0013028579,iPad 11 WiFi 256 藍 MD4H4,iPad,iPad(A16),WiFi iPad 11 藍,正常品
-MD4J4TA/A,0013028580,iPad 11 WiFi 256 黃 MD4J4,iPad,iPad(A16),WiFi iPad 11 黃,正常品
-MD4P4TA/A,0013028581,iPad 11 WiFi 256 粉 MD4P4,iPad,iPad(A16),WiFi iPad 11 粉,正常品
-MD4Q4TA/A,0013028582,iPad 11 WiFi 512 銀 MD4Q4,iPad,iPad(A16),WiFi iPad 11 銀,正常品
-MD4Y4TA/A,0013028583,iPad 11 WiFi 512 藍 MD4Y4,iPad,iPad(A16),WiFi iPad 11 藍,正常品
-MD5A4TA/A,0013028584,iPad 11 WiFi 512 黃 MD5A4,iPad,iPad(A16),WiFi iPad 11 黃,正常品
-MD5C4TA/A,0013028585,iPad 11 WiFi 512 粉 MD5C4,iPad,iPad(A16),WiFi iPad 11 粉,正常品
-MD7F4TA/A,0013028586,iPad 11 CL 128GB 銀 MD7F4,iPad,iPad(A16),Cellular iPad 11 銀,正常品
-MD7G4TA/A,0013028587,iPad 11 CL 128GB 藍 MD7G4,iPad,iPad(A16),Cellular iPad 11 藍,正常品
-MD7H4TA/A,0013028588,iPad 11 CL 128GB 黃 MD7H4,iPad,iPad(A16),Cellular iPad 11 黃,正常品
-MD7J4TA/A,0013028589,iPad 11 CL 128GB 粉 MD7J4,iPad,iPad(A16),Cellular iPad 11 粉,正常品
-MD7K4TA/A,0013028590,iPad 11 CL 256GB 銀 MD7K4,iPad,iPad(A16),Cellular iPad 11 銀,正常品
-MD7L4TA/A,0013028591,iPad 11 CL 256GB 藍 MD7L4,iPad,iPad(A16),Cellular iPad 11 藍,正常品
-MD7M4TA/A,0013028592,iPad 11 CL 256GB 黃 MD7M4,iPad,iPad(A16),Cellular iPad 11 黃,正常品
-MD7N4TA/A,0013028593,iPad 11 CL 256GB 粉 MD7N4,iPad,iPad(A16),Cellular iPad 11 粉,正常品
-MD7P4TA/A,0013028594,iPad 11 CL 512GB 銀 MD7P4,iPad,iPad(A16),Cellular iPad 11 銀,正常品
-MD7Q4TA/A,0013028595,iPad 11 CL 512GB 藍 MD7Q4,iPad,iPad(A16),Cellular iPad 11 藍,正常品
-MD7R4TA/A,0013028596,iPad 11 CL 512GB 黃 MD7R4,iPad,iPad(A16),Cellular iPad 11 黃,正常品
-MD7T4TA/A,0013028597,iPad 11 CL 512GB 粉 MD7T4,iPad,iPad(A16),Cellular iPad 11 粉,正常品
-MC9W4TA/A,0013028598,iPad Air 11 WF 128 灰 MC9W4,iPad,iPad Air 11in M3,WiFi iPad Air 11 灰,正常品
-MC9X4TA/A,0013028599,iPad Air 11 WF 128 藍 MC9X4,iPad,iPad Air 11in M3,WiFi iPad Air 11 藍,正常品
-MC9Y4TA/A,0013028600,iPad Air 11 WF 128 星 MC9Y4,iPad,iPad Air 11in M3,WiFi iPad Air 11 星,正常品
-MCA04TA/A,0013028601,iPad Air 11 WF 128 紫 MCA04,iPad,iPad Air 11in M3,WiFi iPad Air 11 紫,正常品
-MCA14TA/A,0013028602,iPad Air 11 WF 256 灰 MCA14,iPad,iPad Air 11in M3,WiFi iPad Air 11 灰,正常品
-MCA34TA/A,0013028603,iPad Air 11 WF 256 藍 MCA34,iPad,iPad Air 11in M3,WiFi iPad Air 11 藍,正常品
-MCA44TA/A,0013028604,iPad Air 11 WF 256 星 MCA44,iPad,iPad Air 11in M3,WiFi iPad Air 11 星,正常品
-MCA64TA/A,0013028605,iPad Air 11 WF 256 紫 MCA64,iPad,iPad Air 11in M3,WiFi iPad Air 11 紫,正常品
-MCA74TA/A,0013028606,iPad Air 11 WF 512 灰 MCA74,iPad,iPad Air 11in M3,WiFi iPad Air 11 灰,正常品
-MCA94TA/A,0013028607,iPad Air 11 WF 512 藍 MCA94,iPad,iPad Air 11in M3,WiFi iPad Air 11 藍,正常品
-MCAA4TA/A,0013028608,iPad Air 11 WF 512 星 MCAA4,iPad,iPad Air 11in M3,WiFi iPad Air 11 星,正常品
-MCAE4TA/A,0013028609,iPad Air 11 WF 512 紫 MCAE4,iPad,iPad Air 11in M3,WiFi iPad Air 11 紫,正常品
-MCAH4TA/A,0013028610,iPad Air 11 WF 1TB 灰 MCAH4,iPad,iPad Air 11in M3,WiFi iPad Air 11 灰,正常品
-MCAJ4TA/A,0013028611,iPad Air 11 WF 1TB 藍 MCAJ4,iPad,iPad Air 11in M3,WiFi iPad Air 11 藍,正常品
-MCAQ4TA/A,0013028612,iPad Air 11 WF 1TB 星 MCAQ4,iPad,iPad Air 11in M3,WiFi iPad Air 11 星,正常品
-MCAU4TA/A,0013028613,iPad Air 11 WF 1TB 紫 MCAU4,iPad,iPad Air 11in M3,WiFi iPad Air 11 紫,正常品
-MCFV4TA/A,0013028614,iPad Air 11 CL 128 灰 MCFV4,iPad,iPad Air 11in M3,Cellular iPad Air 11 灰,正常品
-MCFW4TA/A,0013028615,iPad Air 11 CL 128 藍 MCFW4,iPad,iPad Air 11in M3,Cellular iPad Air 11 藍,正常品
-MCFX4TA/A,0013028616,iPad Air 11 CL 128 星 MCFX4,iPad,iPad Air 11in M3,Cellular iPad Air 11 星,正常品
-MCFY4TA/A,0013028617,iPad Air 11 CL 128 紫 MCFY4,iPad,iPad Air 11in M3,Cellular iPad Air 11 紫,正常品
-MCG04TA/A,0013028618,iPad Air 11 CL 256 灰 MCG04,iPad,iPad Air 11in M3,Cellular iPad Air 11 灰,正常品
-MCG14TA/A,0013028619,iPad Air 11 CL 256 藍 MCG14,iPad,iPad Air 11in M3,Cellular iPad Air 11 藍,正常品
-MCG24TA/A,0013028620,iPad Air 11 CL 256 星 MCG24,iPad,iPad Air 11in M3,Cellular iPad Air 11 星,正常品
-MCG34TA/A,0013028621,iPad Air 11 CL 256 紫 MCG34,iPad,iPad Air 11in M3,Cellular iPad Air 11 紫,正常品
-MCG44TA/A,0013028622,iPad Air 11 CL 512 灰 MCG44,iPad,iPad Air 11in M3,Cellular iPad Air 11 灰,正常品
-MCG54TA/A,0013028623,iPad Air 11 CL 512 藍 MCG54,iPad,iPad Air 11in M3,Cellular iPad Air 11 藍,正常品
-MCG64TA/A,0013028624,iPad Air 11 CL 512 星 MCG64,iPad,iPad Air 11in M3,Cellular iPad Air 11 星,正常品
-MCG74TA/A,0013028625,iPad Air 11 CL 512 紫 MCG74,iPad,iPad Air 11in M3,Cellular iPad Air 11 紫,正常品
-MCG84TA/A,0013028626,iPad Air 11 CL 1TB 灰 MCG84,iPad,iPad Air 11in M3,Cellular iPad Air 11 灰,正常品
-MCG94TA/A,0013028627,iPad Air 11 CL 1TB 藍 MCG94,iPad,iPad Air 11in M3,Cellular iPad Air 11 藍,正常品
-MCGA4TA/A,0013028628,iPad Air 11 CL 1TB 星 MCGA4,iPad,iPad Air 11in M3,Cellular iPad Air 11 星,正常品
-MCGC4TA/A,0013028629,iPad Air 11 CL 1TB 紫 MCGC4,iPad,iPad Air 11in M3,Cellular iPad Air 11 紫,正常品
-MCJ14TA/A,0013028630,iPad Air 13 CL 128 灰 MCJ14,iPad,iPad Air 13in M3,Cellular iPad Air 13 灰,正常品
-MCJ24TA/A,0013028631,iPad Air 13 CL 128 藍 MCJ24,iPad,iPad Air 13in M3,Cellular iPad Air 13 藍,正常品
-MCJ34TA/A,0013028632,iPad Air 13 CL 128 星 MCJ34,iPad,iPad Air 13in M3,Cellular iPad Air 13 星,正常品
-MCJ44TA/A,0013028633,iPad Air 13 CL 128 紫 MCJ44,iPad,iPad Air 13in M3,Cellular iPad Air 13 紫,正常品
-MCJ54TA/A,0013028634,iPad Air 13 CL 256 灰 MCJ54,iPad,iPad Air 13in M3,Cellular iPad Air 13 灰,正常品
-MCJ64TA/A,0013028635,iPad Air 13 CL 256 藍 MCJ64,iPad,iPad Air 13in M3,Cellular iPad Air 13 藍,正常品
-MCJ74TA/A,0013028636,iPad Air 13 CL 256 星 MCJ74,iPad,iPad Air 13in M3,Cellular iPad Air 13 星,正常品
-MCJ84TA/A,0013028637,iPad Air 13 CL 256 紫 MCJ84,iPad,iPad Air 13in M3,Cellular iPad Air 13 紫,正常品
-MCJ94TA/A,0013028638,iPad Air 13 CL 512 灰 MCJ94,iPad,iPad Air 13in M3,Cellular iPad Air 13 灰,正常品
-MCJA4TA/A,0013028639,iPad Air 13 CL 512 藍 MCJA4,iPad,iPad Air 13in M3,Cellular iPad Air 13 藍,正常品
-MCJC4TA/A,0013028640,iPad Air 13 CL 512 星 MCJC4,iPad,iPad Air 13in M3,Cellular iPad Air 13 星,正常品
-MCJD4TA/A,0013028641,iPad Air 13 CL 512 紫 MCJD4,iPad,iPad Air 13in M3,Cellular iPad Air 13 紫,正常品
-MCJE4TA/A,0013028642,iPad Air 13 CL 1TB 灰 MCJE4,iPad,iPad Air 13in M3,Cellular iPad Air 13 灰,正常品
-MCJF4TA/A,0013028643,iPad Air 13 CL 1TB 藍 MCJF4,iPad,iPad Air 13in M3,Cellular iPad Air 13 藍,正常品
-MCJG4TA/A,0013028644,iPad Air 13 CL 1TB 星 MCJG4,iPad,iPad Air 13in M3,Cellular iPad Air 13 星,正常品
-MCJH4TA/A,0013028645,iPad Air 13 CL 1TB 紫 MCJH4,iPad,iPad Air 13in M3,Cellular iPad Air 13 紫,正常品
-MCNH4TA/A,0013028646,iPad Air 13 WF 128 灰 MCNH4,iPad,iPad Air 13in M3,WiFi iPad Air 13 灰,正常品
-MCNJ4TA/A,0013028647,iPad Air 13 WF 128 藍 MCNJ4,iPad,iPad Air 13in M3,WiFi iPad Air 13 藍,正常品
-MCNK4TA/A,0013028648,iPad Air 13 WF 128 星 MCNK4,iPad,iPad Air 13in M3,WiFi iPad Air 13 星,正常品
-MCNL4TA/A,0013028649,iPad Air 13 WF 128 紫 MCNL4,iPad,iPad Air 13in M3,WiFi iPad Air 13 紫,正常品
-MCNN4TA/A,0013028650,iPad Air 13 WF 256 灰 MCNN4,iPad,iPad Air 13in M3,WiFi iPad Air 13 灰,正常品
-MCNP4TA/A,0013028651,iPad Air 13 WF 256 藍 MCNP4,iPad,iPad Air 13in M3,WiFi iPad Air 13 藍,正常品
-MCNQ4TA/A,0013028652,iPad Air 13 WF 256 星 MCNQ4,iPad,iPad Air 13in M3,WiFi iPad Air 13 星,正常品
-MCNR4TA/A,0013028653,iPad Air 13 WF 256 紫 MCNR4,iPad,iPad Air 13in M3,WiFi iPad Air 13 紫,正常品
-MCNT4TA/A,0013028654,iPad Air 13 WF 512 灰 MCNT4,iPad,iPad Air 13in M3,WiFi iPad Air 13 灰,正常品
-MCNW4TA/A,0013028655,iPad Air 13 WF 512 藍 MCNW4,iPad,iPad Air 13in M3,WiFi iPad Air 13 藍,正常品
-MCNX4TA/A,0013028656,iPad Air 13 WF 512 星 MCNX4,iPad,iPad Air 13in M3,WiFi iPad Air 13 星,正常品
-MCNY4TA/A,0013028657,iPad Air 13 WF 512 紫 MCNY4,iPad,iPad Air 13in M3,WiFi iPad Air 13 紫,正常品
-MCQ04TA/A,0013028658,iPad Air 13 WF 1TB 灰 MCQ04,iPad,iPad Air 13in M3,WiFi iPad Air 13 灰,正常品
-MCQ14TA/A,0013028659,iPad Air 13 WF 1TB 藍 MCQ14,iPad,iPad Air 13in M3,WiFi iPad Air 13 藍,正常品
-MCQ24TA/A,0013028660,iPad Air 13 WF 1TB 星 MCQ24,iPad,iPad Air 13in M3,WiFi iPad Air 13 星,正常品
-MCQ34TA/A,0013028661,iPad Air 13 WF 1TB 紫 MCQ34,iPad,iPad Air 13in M3,WiFi iPad Air 13 紫,正常品
-MDFV4TA/A,0013028662,Air 11 M2/3 巧控鍵盤 白 MDFV4,Accy,*iPad Accy,Air 11 5th Keyboard,正常品
-MDFW4TA/A,0013028663,Air 13 M2/3 巧控鍵盤 白 MDFW4,Accy,*iPad Accy,Air 13 2nd Keyboard,正常品
-MDRR4FE/A,0013028664,40mm 運動錶帶 橘紅 S/M MDRR4,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MDRT4FE/A,0013028665,40mm 運動錶帶 橘紅 M/L MDRT4,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MDRU4FE/A,0013028666,40mm 運動錶帶 長春花 S/M MDRU4,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MDRV4FE/A,0013028667,40mm 運動錶帶 長春花 M/L MDRV4,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MDRW4FE/A,0013028668,40mm 運動錶帶 青綠色 S/M MDRW4,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MDRX4FE/A,0013028669,40mm 運動錶帶 青綠色 M/L MDRX4,Accy,*Apple Watch Accy,Band 40mm Sport,正常品
-MDRY4FE/A,0013028670,42mm 運動錶帶 橘紅 S/M MDRY4,Accy,*Apple Watch Accy,Band 42mm Sport,正常品
-MDT04FE/A,0013028671,42mm 運動錶帶 橘紅 M/L MDT04,Accy,*Apple Watch Accy,Band 42mm Sport,正常品
-MDT14FE/A,0013028672,42mm 運動錶帶 長春花 S/M MDT14,Accy,*Apple Watch Accy,Band 42mm Sport,正常品
-MDT24FE/A,0013028673,42mm 運動錶帶 長春花 M/L MDT24,Accy,*Apple Watch Accy,Band 42mm Sport,正常品
-MDT34FE/A,0013028674,42mm 運動錶帶 青綠色 S/M MDT34,Accy,*Apple Watch Accy,Band 42mm Sport,正常品
-MDT44FE/A,0013028675,42mm 運動錶帶 青綠色 M/L MDT44,Accy,*Apple Watch Accy,Band 42mm Sport,正常品
-MDT54FE/A,0013028676,46mm 運動錶帶 橘紅 S/M MDT54,Accy,*Apple Watch Accy,Band 46mm Sport,正常品
-MDT64FE/A,0013028677,46mm 運動錶帶 橘紅 M/L MDT64,Accy,*Apple Watch Accy,Band 46mm Sport,正常品
-MDT74FE/A,0013028678,46mm 運動錶帶 長春花 S/M MDT74,Accy,*Apple Watch Accy,Band 46mm Sport,正常品
-MDT84FE/A,0013028679,46mm 運動錶帶 長春花 M/L MDT84,Accy,*Apple Watch Accy,Band 46mm Sport,正常品
-MDT94FE/A,0013028680,46mm 運動錶帶 青綠色 S/M MDT94,Accy,*Apple Watch Accy,Band 46mm Sport,正常品
-MDTA4FE/A,0013028681,46mm 運動錶帶 青綠色 M/L MDTA4,Accy,*Apple Watch Accy,Band 46mm Sport,正常品
-MDUW4FE/A,0013028682,40mm 運動錶環 鼠尾草 MDUW4,Accy,*Apple Watch Accy,Band 40mm Sport Loop,正常品
-MDUX4FE/A,0013028683,40mm 運動錶環 長春花 MDUX4,Accy,*Apple Watch Accy,Band 40mm Sport Loop,正常品
-MDV04FE/A,0013028684,42mm 運動錶環 鼠尾草 MDV04,Accy,*Apple Watch Accy,Band 42mm Sport Loop,正常品
-MDV14FE/A,0013028685,42mm 運動錶環 長春花 MDV14,Accy,*Apple Watch Accy,Band 42mm Sport Loop,正常品
-MDV44FE/A,0013028686,46mm 運動錶環 鼠尾草 MDV44,Accy,*Apple Watch Accy,Band 46mm Sport Loop,正常品
-MDV54FE/A,0013028687,46mm 運動錶環 長春花 MDV54,Accy,*Apple Watch Accy,Band 46mm Sport Loop,正常品
-SUYD2TA/A,0013028688,AC+ for iPad A16 SUYD2,Care,ACPP+,iPad A16 ACPP+,正常品
-SV072TA/A,0013028689,AC+ for iPad Air 11 5 SV072,Care,ACPP+,iPad Air 11 5th ACPP+,正常品
-SV172TA/A,0013028690,AC+ for iPad Air 13 2 SV172,Care,ACPP+,iPad Air 13 2th ACPP+,正常品
-STKT2TA/A,0013028701,AC+ for Mac Studio M4 STKT2,Care,ACPP+,Mac Studio ACPP+,正常品
-SUWE2TA/A,0013028702,AC+ for MBA 13 M4 SUWE2,Care,ACPP+,13 MacBook Air ACPP+,正常品
-SUWF2TA/A,0013028703,AC+ for MBA 15 M4 SUWF2,Care,ACPP+,15 MacBook Air ACPP+,正常品
-MU963TA/A,0013028704,Mac Studio M4M 512GB MU963,CPU,MAC STUDIO,Mac Studio M4M 512G,正常品
-MU973TA/A,0013028705,Mac Studio M3U 1TB MU973,CPU,MAC STUDIO,Mac Studio M3U 1T,正常品
-MC654TA/A,0013028706,M4 MBA 13 24G 512 銀 MC654,CPU,MACBOOK AIR 13(M4),MacBook Air M4 24G 512G 銀,正常品
-MC6A4TA/A,0013028707,M4 MBA 13 24G 512 星 MC6A4,CPU,MACBOOK AIR 13(M4),MacBook Air M4 24G 512G 星,正常品
-MC6C4TA/A,0013028708,M4 MBA 13 24G 512 午 MC6C4,CPU,MACBOOK AIR 13(M4),MacBook Air M4 24G 512G 午,正常品
-MC6J4TA/A,0013028709,M4 MBA 15 24G 512 銀 MC6J4,CPU,MACBOOK AIR 15(M4),MacBook Air M4 24G 512G 銀,正常品
-MC6K4TA/A,0013028710,M4 MBA 15 24G 512 星 MC6K4,CPU,MACBOOK AIR 15(M4),MacBook Air M4 24G 512G 星,正常品
-MC6L4TA/A,0013028711,M4 MBA 15 24G 512 午 MC6L4,CPU,MACBOOK AIR 15(M4),MacBook Air M4 24G 512G 午,正常品
-MC6T4TA/A,0013028712,M4 MBA 13 8GP 16G 256 藍 MC6T4,CPU,MACBOOK AIR 13(M4),MacBook Air M4 16G 256G 藍,正常品
-MC6U4TA/A,0013028713,M4 MBA 13 16G 512 藍 MC6U4,CPU,MACBOOK AIR 13(M4),MacBook Air M4 16G 512G 藍,正常品
-MC6V4TA/A,0013028714,M4 MBA 13 24G 512 藍 MC6V4,CPU,MACBOOK AIR 13(M4),MacBook Air M4 24G 512G 藍,正常品
-MC7A4TA/A,0013028715,M4 MBA 15 16G 256 藍 MC7A4,CPU,MACBOOK AIR 15(M4),MacBook Air M4 16G 256G 藍,正常品
-MC7C4TA/A,0013028716,M4 MBA 15 16G 512 藍 MC7C4,CPU,MACBOOK AIR 15(M4),MacBook Air M4 16G 512G 藍,正常品
-MC7D4TA/A,0013028717,M4 MBA 15 24G 512 藍 MC7D4,CPU,MACBOOK AIR 15(M4),MacBook Air M4 24G 512G 藍,正常品
-MW0W3TA/A,0013028718,M4 MBA 13 8GP 16G 256 銀 MW0W3,CPU,MACBOOK AIR 13(M4),MacBook Air M4 16G 256G 銀,正常品
-MW0X3TA/A,0013028719,M4 MBA 13 16G 512 銀 MW0X3,CPU,MACBOOK AIR 13(M4),MacBook Air M4 16G 512G 銀,正常品
-MW0Y3TA/A,0013028720,M4 MBA 13 8GP 16G 256 星 MW0Y3,CPU,MACBOOK AIR 13(M4),MacBook Air M4 16G 256G 星,正常品
-MW103TA/A,0013028721,M4 MBA 13 16G 512 星 MW103,CPU,MACBOOK AIR 13(M4),MacBook Air M4 16G 512G 星,正常品
-MW123TA/A,0013028722,M4 MBA 13 8GP 16G 256 午 MW123,CPU,MACBOOK AIR 13(M4),MacBook Air M4 16G 256G 午,正常品
-MW133TA/A,0013028723,M4 MBA 13 16G 512 午 MW133,CPU,MACBOOK AIR 13(M4),MacBook Air M4 16G 512G 午,正常品
-MW1G3TA/A,0013028724,M4 MBA 15 16G 256 銀 MW1G3,CPU,MACBOOK AIR 15(M4),MacBook Air M4 16G 256G 銀,正常品
-MW1H3TA/A,0013028725,M4 MBA 15 16G 512 銀 MW1H3,CPU,MACBOOK AIR 15(M4),MacBook Air M4 16G 512G 銀,正常品
-MW1J3TA/A,0013028726,M4 MBA 15 16G 256 星 MW1J3,CPU,MACBOOK AIR 15(M4),MacBook Air M4 16G 256G 星,正常品
-MW1K3TA/A,0013028727,M4 MBA 15 16G 512 星 MW1K3,CPU,MACBOOK AIR 15(M4),MacBook Air M4 16G 512G 星,正常品
-MW1L3TA/A,0013028728,M4 MBA 15 16G 256 午 MW1L3,CPU,MACBOOK AIR 15(M4),MacBook Air M4 16G 256G 午,正常品
-MW1M3TA/A,0013028729,M4 MBA 15 16G 512 午 MW1M3,CPU,MACBOOK AIR 15(M4),MacBook Air M4 16G 512G 午,正常品
-MDV84FE/A,0013028784,USB-C to 3.5 mm Cable MDV84,Accy,#Cable,USB-C,正常品
-Z1K100011,0013028909,M4 iMac 24 10C 32 512 銀 Z1K1,CPU,IMAC,iMac 24 M4 512G,正常品
-Z1FG,0013028937,M4M MBP 14 Nano 1TB 黑 Z1FG,CPU,MBP 14 M4 Pro&Max,MacBook Pro M4Max 36G 1TB 黑,正常品
-MDEW4TA/A,0013028942,HomePod 午夜 MDEW4,Audio,HomePod,HomePod 灰,正常品
-MDEY4TA/A,0013028943,HomePod 白色 MDEY4,Audio,HomePod,HomePod 白,正常品
-MYJF3TA/A,0013028958,Studio Display 標準斜高 MYJF3,Accy,*CPU Accy,"27"" Display",正常品
-MYJG3TA/A,0013028959,Studio Display 標準斜 MYJG3,Accy,*CPU Accy,"27"" Display",正常品
-Z1K5,0013028984,M4 iMac 24 10C 24 512 藍 Z1K5,CPU,IMAC,iMac 24 M4 512G,正常品
-Z1EP,0013029126,M4 iMac 24 10C 16 256 藍 Z1EP,CPU,IMAC,iMac 24 M4 256G,正常品
-Z1EK,0013029127,M4 iMac 24 10C 16 256 黃 Z1EK,CPU,IMAC,iMac 24 M4 256G,正常品
-MFHP4TA/A,0013029775,AirPods Pro 3 MFHP4,7490
-MG6J4ZP/A,0013029776,iPhone 17 256G 黑 MG6J4,29900
-MG6K4ZP/A,0013029777,iPhone 17 256G 白 MG6K4,29900
-MG6L4ZP/A,0013029778,iPhone 17 256G 霧藍 MG6L4,29900
-MG6M4ZP/A,0013029779,iPhone 17 256G 薰衣紫 MG6M4,29900
-MG6N4ZP/A,0013029780,iPhone 17 256G 鼠尾綠 MG6N4,29900
-MG6P4ZP/A,0013029781,iPhone 17 512G 黑 MG6P4,36900
-MG6Q4ZP/A,0013029782,iPhone 17 512G 白 MG6Q4,36900
-MG6T4ZP/A,0013029783,iPhone 17 512G 霧藍 MG6T4,36900
-MG6U4ZP/A,0013029784,iPhone 17 512G 薰衣紫 MG6U4,36900
-MG6V4ZP/A,0013029785,iPhone 17 512G 鼠尾綠 MG6V4,36900
-MG2L4ZP/A,0013029786,iPhone Air 256G 太空黑 MG2L4,36900
-MG2M4ZP/A,0013029787,iPhone Air 256G 雲白 MG2M4,36900
-MG2N4ZP/A,0013029788,iPhone Air 256G 淺金 MG2N4,36900
-MG2P4ZP/A,0013029789,iPhone Air 256G 天藍 MG2P4,36900
-MG2Q4ZP/A,0013029790,iPhone Air 512G 太空黑 MG2Q4,43900
-MG2T4ZP/A,0013029791,iPhone Air 512G 雲白 MG2T4,43900
-MG2U4ZP/A,0013029792,iPhone Air 512G 淺金 MG2U4,43900
-MG2V4ZP/A,0013029793,iPhone Air 512G 天藍 MG2V4,43900
-MG2W4ZP/A,0013029794,iPhone Air 1T 太空黑 MG2W4,50900
-MG2X4ZP/A,0013029795,iPhone Air 1T 雲白 MG2X4,50900
-MG2Y4ZP/A,0013029796,iPhone Air 1T 淺金 MG2Y4,50900
-MG304ZP/A,0013029797,iPhone Air 1T 天藍 MG304,50900
-MG8G4ZP/A,0013029798,iPhone 17 Pro 256G 銀 MG8G4,39900
-MG8H4ZP/A,0013029799,iPhone 17 Pro 256G 橙 MG8H4,39900
-MG8J4ZP/A,0013029800,iPhone 17 Pro 256G 藏藍 MG8J4,39900
-MG8K4ZP/A,0013029801,iPhone 17 Pro 512G 銀 MG8K4,46900
-MG8M4ZP/A,0013029802,iPhone 17 Pro 512G 橙 MG8M4,46900
-MG8N4ZP/A,0013029803,iPhone 17 Pro 512G 藏藍 MG8N4,46900
-MG8P4ZP/A,0013029804,iPhone 17 Pro 1T 銀 MG8P4,53900
-MG8Q4ZP/A,0013029805,iPhone 17 Pro 1T 橙 MG8Q4,53900
-MG8R4ZP/A,0013029806,iPhone 17 Pro 1T 藏藍 MG8R4,53900
-MFYM4ZP/A,0013029807,iPhone 17 PM 256G 銀 MFYM4,44900
-MFYN4ZP/A,0013029808,iPhone 17 PM 256G 橙 MFYN4,44900
-MFYP4ZP/A,0013029809,iPhone 17 PM 256G 藏藍 MFYP4,44900
-MFYQ4ZP/A,0013029810,iPhone 17 PM 512G 銀 MFYQ4,51900
-MFYT4ZP/A,0013029811,iPhone 17 PM 512G 橙 MFYT4,51900
-MFYU4ZP/A,0013029812,iPhone 17 PM 512G 藏藍 MFYU4,51900
-MFYV4ZP/A,0013029813,iPhone 17 PM 1T 銀 MFYV4,58900
-MFYW4ZP/A,0013029814,iPhone 17 PM 1T 橙 MFYW4,58900
-MFYX4ZP/A,0013029815,iPhone 17 PM 1T 藏藍 MFYX4,58900
-MFYY4ZP/A,0013029816,iPhone 17 PM 2T 銀 MFYY4,72900
-MG004ZP/A,0013029817,iPhone 17 PM 2T 橙 MG004,72900
-MG014ZP/A,0013029818,iPhone 17 PM 2T 藏藍 MG014,72900
-MEH34TA/A,0013029819,AW SE 40 星鋁/星帶 S MEH34,7900
-MEH54TA/A,0013029820,AW SE 40 星鋁/星帶 L MEH54,7900
-MEH94TA/A,0013029821,AW SE 40 午鋁/午帶 S MEH94,7900
-MEHC4TA/A,0013029822,AW SE 40 午鋁/午帶 L MEHC4,7900
-MEHG4TA/A,0013029823,AW SE 44 星鋁/星帶 S MEHG4,8900
-MEHJ4TA/A,0013029824,AW SE 44 星鋁/星帶 L MEHJ4,8900
-MEHN4TA/A,0013029825,AW SE 44 午鋁/午帶 S MEHN4,8900
-MEHQ4TA/A,0013029826,AW SE 44 午鋁/午帶 L MEHQ4,8900
-MEP64TA/A,0013029827,AW SE CL 40 星鋁/星帶 S MEP64,9400
-MEP74TA/A,0013029828,AW SE CL 40 星鋁/星帶 L MEP74,9400
-MEP94TA/A,0013029829,AW SE CL 40 午鋁/午帶 S MEP94,9400
-MEPC4TA/A,0013029830,AW SE CL 40 午鋁/午帶 L MEPC4,9400
-MEPE4TA/A,0013029831,AW SE CL 44 星鋁/星帶 S MEPE4,10400
-MEPF4TA/A,0013029832,AW SE CL 44 星鋁/星帶 L MEPF4,10400
-MEPH4TA/A,0013029833,AW SE CL 44 午鋁/午帶 S MEPH4,10400
-MEPJ4TA/A,0013029834,AW SE CL 44 午鋁/午帶 L MEPJ4,10400
-MEQT4TA/A,0013029835,AW S11 42 黑鋁/黑帶 S MEQT4,12900
-MEQU4TA/A,0013029836,AW S11 42 黑鋁/黑帶 L MEQU4,12900
-MEQW4TA/A,0013029837,AW S11 42 灰鋁/黑帶 S MEQW4,12900
-MEQX4TA/A,0013029838,AW S11 42 灰鋁/黑帶 L MEQX4,12900
-MEU04TA/A,0013029839,AW S11 42 金鋁/粉帶 S MEU04,12900
-MEU44TA/A,0013029840,AW S11 42 金鋁/粉帶 L MEU44,12900
-MEU64TA/A,0013029841,AW S11 42 銀鋁/紫帶 S MEU64,12900
-MEU74TA/A,0013029842,AW S11 42 銀鋁/紫帶 L MEU74,12900
-MEUW4TA/A,0013029843,AW S11 46 黑鋁/黑帶 S MEUW4,13900
-MEUX4TA/A,0013029844,AW S11 46 黑鋁/黑帶 L MEUX4,13900
-MEV04TA/A,0013029845,AW S11 46 灰鋁/黑帶 S MEV04,13900
-MEV44TA/A,0013029846,AW S11 46 灰鋁/黑帶 L MEV44,13900
-MEV64TA/A,0013029847,AW S11 46 金鋁/粉帶 S MEV64,13900
-MEV74TA/A,0013029848,AW S11 46 金鋁/粉帶 L MEV74,13900
-MEV94TA/A,0013029849,AW S11 46 銀鋁/紫帶 S MEV94,13900
-MEVA4TA/A,0013029850,AW S11 46 銀鋁/紫帶 L MEVA4,13900
-MF834TA/A,0013029851,AW S11 CL 42 黑鋁/黑帶 S MF834,15900
-MF854TA/A,0013029852,AW S11 CL 42 黑鋁/黑帶 L MF854,15900
-MF8A4TA/A,0013029853,AW S11 CL 42 灰鋁/黑帶 S MF8A4,15900
-MF8C4TA/A,0013029854,AW S11 CL 42 灰鋁/黑帶 L MF8C4,15900
-MF8E4TA/A,0013029855,AW S11 CL 42 金鋁/粉帶 S MF8E4,15900
-MF8F4TA/A,0013029856,AW S11 CL 42 金鋁/粉帶 L MF8F4,15900
-MF8H4TA/A,0013029857,AW S11 CL 42 銀鋁/紫帶 S MF8H4,15900
-MF8J4TA/A,0013029858,AW S11 CL 42 銀鋁/紫帶 L MF8J4,15900
-MF8M4TA/A,0013029859,AW S11 CL 42 原鈦/灰帶 S MF8M4,22900
-MF8N4TA/A,0013029860,AW S11 CL 42 原鈦/灰帶 L MF8N4,22900
-MF8P4TA/A,0013029861,AW S11 CL 42 原鈦/原米 MF8P4,24400
-MF8R4TA/A,0013029862,AW S11 CL 42 石鈦/黑帶 S MF8R4,22900
-MF8T4TA/A,0013029863,AW S11 CL 42 石鈦/黑帶 L MF8T4,22900
-MF8U4TA/A,0013029864,AW S11 CL 42 石鈦/石米 MF8U4,24400
-MF8W4TA/A,0013029865,AW S11 CL 42 金鈦/粉帶 S MF8W4,22900
-MF8X4TA/A,0013029866,AW S11 CL 42 金鈦/粉帶 L MF8X4,22900
-MF8Y4TA/A,0013029867,AW S11 CL 42 金鈦/金米 MF8Y4,24400
-MFC24TA/A,0013029868,AW S11 CL 46 黑鋁/黑帶 S MFC24,16900
-MFC44TA/A,0013029869,AW S11 CL 46 黑鋁/黑帶 L MFC44,16900
-MFC94TA/A,0013029870,AW S11 CL 46 灰鋁/黑帶 S MFC94,16900
-MFCA4TA/A,0013029871,AW S11 CL 46 灰鋁/黑帶 L MFCA4,16900
-MFCG4TA/A,0013029872,AW S11 CL 46 金鋁/粉帶 S MFCG4,16900
-MFCJ4TA/A,0013029873,AW S11 CL 46 金鋁/粉帶 L MFCJ4,16900
-MFCP4TA/A,0013029874,AW S11 CL 46 銀鋁/紫帶 S MFCP4,16900
-MFCR4TA/A,0013029875,AW S11 CL 46 銀鋁/紫帶 L MFCR4,16900
-MFCW4TA/A,0013029876,AW S11 CL 46 原鈦/灰帶 S MFCW4,24400
-MFCX4TA/A,0013029877,AW S11 CL 46 原鈦/灰帶 L MFCX4,24400
-MFCY4TA/A,0013029878,AW S11 CL 46 原鈦/原米 S MFCY4,25900
-MFD04TA/A,0013029879,AW S11 CL 46 原鈦/原米 L MFD04,25900
-MFD14TA/A,0013029880,AW S11 CL 46 石鈦/黑帶 S MFD14,24400
-MFD24TA/A,0013029881,AW S11 CL 46 石鈦/黑帶 L MFD24,24400
-MFD34TA/A,0013029882,AW S11 CL 46 石鈦/石米 S MFD34,25900
-MFD44TA/A,0013029883,AW S11 CL 46 石鈦/石米 L MFD44,25900
-MFD54TA/A,0013029884,AW S11 CL 46 金鈦/粉帶 S MFD54,24400
-MFD64TA/A,0013029885,AW S11 CL 46 金鈦/粉帶 L MFD64,24400
-MFD74TA/A,0013029886,AW S11 CL 46 金鈦/金米 S MFD74,25900
-MFD84TA/A,0013029887,AW S11 CL 46 金鈦/金米 L MFD84,25900
-MEWH4TA/A,0013029888,AW Ultra 原鈦/海洋藍 MEWH4,26900
-MEWK4TA/A,0013029889,AW Ultra 原鈦/高山藍環 S MEWK4,26900
-MEWM4TA/A,0013029890,AW Ultra 原鈦/高山藍環 M MEWM4,26900
-MEWP4TA/A,0013029891,AW Ultra 原鈦/高山藍環 L MEWP4,26900
-MEWR4TA/A,0013029892,AW Ultra 原鈦/越野藍環 S MEWR4,26900
-MEWU4TA/A,0013029893,AW Ultra 原鈦/越野藍環 L MEWU4,26900
-MEWW4TA/A,0013029894,AW Ultra 原鈦/原米蘭環 S MEWW4,29900
-MEWY4TA/A,0013029895,AW Ultra 原鈦/原米蘭環 M MEWY4,29900
-MF0E4TA/A,0013029896,AW Ultra 原鈦/原米蘭環 L MF0E4,29900
-MF0J4TA/A,0013029897,AW Ultra 黑鈦/海洋藍 MF0J4,26900
-MF0Q4TA/A,0013029898,AW Ultra 黑鈦/高山藍環 S MF0Q4,26900
-MF0V4TA/A,0013029899,AW Ultra 黑鈦/高山藍環 M MF0V4,26900
-MF0X4TA/A,0013029900,AW Ultra 黑鈦/高山藍環 L MF0X4,26900
-MF1D4TA/A,0013029901,AW Ultra 黑鈦/越野藍環 S MF1D4,26900
-MF1H4TA/A,0013029902,AW Ultra 黑鈦/越野藍環 L MF1H4,26900
-MF1N4TA/A,0013029903,AW Ultra 黑鈦/黑米蘭環 S MF1N4,29900
-MF1Q4TA/A,0013029904,AW Ultra 黑鈦/黑米蘭環 M MF1Q4,29900
-MF1T4TA/A,0013029905,AW Ultra 黑鈦/黑米蘭環 L MF1T4,29900 `;
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
 
-    function parseCSV(csv) {
-      const lines = csv.trim().split('\n');
-      const headers = lines.shift().split(',');
-      return lines.map(line => {
-        const values = line.split(',');
-        return headers.reduce((obj, header, i) => {
-          obj[header] = values[i];
-          return obj;
-        }, {});
-      });
-    }
+        fileInput.addEventListener('change', (e) => {
+            const files = e.target.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
 
-    function renderTable(filteredData) {
-      const tbody = document.querySelector('#resultTable tbody');
-      tbody.innerHTML = '';
-      if (filteredData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="no-results">沒有符合的資料</td></tr>';
-        return;
-      }
-      filteredData.forEach(row => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${row.manufacture_style || ''}</td>
-          <td>${row.Code || ''}</td>
-          <td>${row.product_name || ''}</td>
-          <td>${row.大分類 || ''}</td>
-          <td>${row.中分類 || ''}</td>
-          <td>${row.小分類 || ''}</td>
-          <td>${row.Remark || ''}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
+        function handleFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                    processData(jsonData);
+                } catch (error) {
+                    alert('讀取檔案時發生錯誤: ' + error.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
 
-    function filterData(keyword) {
-      const lowerKeyword = keyword.toLowerCase();
-      return originalData.filter(row =>
-        Object.values(row).some(value =>
-          value && value.toLowerCase().includes(lowerKeyword)
-        )
-      );
-    }
+        function processData(jsonData) {
+            const data = {};
+            const storeNames = ['中港店', '中友店', '台中三井店', '耐斯店', '垂楊店'];
+            
+            // 從檔案名稱提取日期（假設檔案中有日期資訊）
+            // 這裡使用當前日期作為示範
+            const currentDate = new Date().toLocaleDateString('zh-TW');
+            document.getElementById('monthDate').textContent = currentDate;
+            document.getElementById('yearDate').textContent = currentDate;
 
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-      const keyword = e.target.value;
-      const filtered = filterData(keyword);
-      renderTable(filtered);
-    });
+            jsonData.forEach((row, index) => {
+                if (index === 0) return; // 跳過標題行
 
-    document.getElementById('fileInput').addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        originalData = parseCSV(event.target.result);
-        renderTable(originalData);
-      };
-      reader.readAsText(file);
-    });
+                const storeName = row[0];
+                if (!storeNames.includes(storeName)) return;
 
-    originalData = parseCSV(csvData);
-    renderTable(originalData);
-  </script>
+                data[storeName] = {
+                    // 月份數據
+                    monthTarget: parseFloat(row[1]) || 0,
+                    monthEstimate: parseFloat(row[2]) || 0,
+                    monthActual: parseFloat(row[3]) || 0,
+                    monthEstimateRate: parseFloat(row[4]) || 0,
+                    monthEstimateDiff: parseFloat(row[5]) || 0,
+                    lastYearMonth: parseFloat(row[6]) || 0,
+                    monthGrowthRate: parseFloat(row[7]) || 0,
+                    monthGrowthAmount: parseFloat(row[8]) || 0,
+                    monthTargetRate: parseFloat(row[9]) || 0,
+                    monthTargetDiff: parseFloat(row[10]) || 0,
+                    
+                    // 年度數據
+                    yearTarget: parseFloat(row[11]) || 0,
+                    yearEstimate: parseFloat(row[12]) || 0,
+                    yearActual: parseFloat(row[13]) || 0,
+                    yearEstimateRate: parseFloat(row[14]) || 0,
+                    yearEstimateDiff: parseFloat(row[15]) || 0,
+                    lastYearSamePeriod: parseFloat(row[16]) || 0,
+                    yearGrowthRate: parseFloat(row[17]) || 0,
+                    yearGrowthAmount: parseFloat(row[18]) || 0,
+                    yearTargetRate: parseFloat(row[19]) || 0,
+                    yearTargetDiff: parseFloat(row[20]) || 0
+                };
+            });
+
+            displayResults(data);
+        }
+
+        function displayResults(data) {
+            const monthlyBody = document.getElementById('monthlyBody');
+            const yearlyBody = document.getElementById('yearlyBody');
+            
+            monthlyBody.innerHTML = '';
+            yearlyBody.innerHTML = '';
+
+            const storeOrder = ['中港店', '中友店', '台中三井店', '耐斯店', '垂楊店'];
+            const activeStoresData = [];
+
+            storeOrder.forEach(storeName => {
+                if (data[storeName]) {
+                    const d = data[storeName];
+                    activeStoresData.push(d);
+                    
+                    // 月份數據
+                    const monthRow = `
+                        <tr>
+                            <td class="store-name">${storeName}</td>
+                            <td>${formatNumber(d.monthTarget)}</td>
+                            <td>${formatNumber(d.monthEstimate)}</td>
+                            <td>${formatNumber(d.monthActual)}</td>
+                            <td>${d.monthEstimateRate}%</td>
+                            <td class="${d.monthEstimateDiff >= 0 ? 'positive' : 'negative'}">${formatNumber(d.monthEstimateDiff)}</td>
+                            <td>${formatNumber(d.lastYearMonth)}</td>
+                            <td class="${parseFloat(d.monthGrowthRate) >= 0 ? 'positive' : 'negative'}">${d.monthGrowthRate}%</td>
+                            <td class="${d.monthGrowthAmount >= 0 ? 'positive' : 'negative'}">${formatNumber(d.monthGrowthAmount)}</td>
+                            <td>${d.monthTargetRate}%</td>
+                            <td class="${d.monthTargetDiff >= 0 ? 'positive' : 'negative'}">${formatNumber(d.monthTargetDiff)}</td>
+                        </tr>
+                    `;
+                    monthlyBody.innerHTML += monthRow;
+
+                    // 年度數據
+                    const yearRow = `
+                        <tr>
+                            <td class="store-name">${storeName}</td>
+                            <td>${formatNumber(d.yearTarget)}</td>
+                            <td>${formatNumber(d.yearEstimate)}</td>
+                            <td>${formatNumber(d.yearActual)}</td>
+                            <td>${d.yearEstimateRate}%</td>
+                            <td class="${d.yearEstimateDiff >= 0 ? 'positive' : 'negative'}">${formatNumber(d.yearEstimateDiff)}</td>
+                            <td>${formatNumber(d.lastYearSamePeriod)}</td>
+                            <td class="${parseFloat(d.yearGrowthRate) >= 0 ? 'positive' : 'negative'}">${d.yearGrowthRate}%</td>
+                            <td class="${d.yearGrowthAmount >= 0 ? 'positive' : 'negative'}">${formatNumber(d.yearGrowthAmount)}</td>
+                            <td>${d.yearTargetRate}%</td>
+                            <td class="${d.yearTargetDiff >= 0 ? 'positive' : 'negative'}">${formatNumber(d.yearTargetDiff)}</td>
+                        </tr>
+                    `;
+                    yearlyBody.innerHTML += yearRow;
+                }
+            });
+
+            // 計算並新增總計列
+            if (activeStoresData.length > 0) {
+                const totals = calculateTotals(activeStoresData);
+                monthlyBody.innerHTML += createTotalRow(totals.month, 'month');
+                yearlyBody.innerHTML += createTotalRow(totals.year, 'year');
+            }
+
+            resultsSection.style.display = 'block';
+            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function calculateTotals(activeStoresData) {
+            const totals = {
+                month: {
+                    monthTarget: 0,
+                    monthEstimate: 0,
+                    monthActual: 0,
+                    monthEstimateDiff: 0,
+                    lastYearMonth: 0,
+                    monthGrowthAmount: 0,
+                    monthTargetDiff: 0,
+                    monthEstimateRate: 0,
+                    monthGrowthRate: 0,
+                    monthTargetRate: 0
+                },
+                year: {
+                    yearTarget: 0,
+                    yearEstimate: 0,
+                    yearActual: 0,
+                    yearEstimateDiff: 0,
+                    lastYearSamePeriod: 0,
+                    yearGrowthAmount: 0,
+                    yearTargetDiff: 0,
+                    yearEstimateRate: 0,
+                    yearGrowthRate: 0,
+                    yearTargetRate: 0
+                }
+            };
+
+            // 累加數值
+            activeStoresData.forEach(d => {
+                totals.month.monthTarget += parseFloat(d.monthTarget) || 0;
+                totals.month.monthEstimate += parseFloat(d.monthEstimate) || 0;
+                totals.month.monthActual += parseFloat(d.monthActual) || 0;
+                totals.month.monthEstimateDiff += parseFloat(d.monthEstimateDiff) || 0;
+                totals.month.lastYearMonth += parseFloat(d.lastYearMonth) || 0;
+                totals.month.monthGrowthAmount += parseFloat(d.monthGrowthAmount) || 0;
+                totals.month.monthTargetDiff += parseFloat(d.monthTargetDiff) || 0;
+                
+                totals.year.yearTarget += parseFloat(d.yearTarget) || 0;
+                totals.year.yearEstimate += parseFloat(d.yearEstimate) || 0;
+                totals.year.yearActual += parseFloat(d.yearActual) || 0;
+                totals.year.yearEstimateDiff += parseFloat(d.yearEstimateDiff) || 0;
+                totals.year.lastYearSamePeriod += parseFloat(d.lastYearSamePeriod) || 0;
+                totals.year.yearGrowthAmount += parseFloat(d.yearGrowthAmount) || 0;
+                totals.year.yearTargetDiff += parseFloat(d.yearTargetDiff) || 0;
+            });
+            
+            // 計算比例
+            if (totals.month.monthEstimate !== 0) {
+                totals.month.monthEstimateRate = (totals.month.monthActual / totals.month.monthEstimate * 100).toFixed(2);
+            }
+            if (totals.month.lastYearMonth !== 0) {
+                totals.month.monthGrowthRate = (totals.month.monthGrowthAmount / totals.month.lastYearMonth * 100).toFixed(2);
+            }
+            if (totals.month.monthTarget !== 0) {
+                totals.month.monthTargetRate = (totals.month.monthActual / totals.month.monthTarget * 100).toFixed(2);
+            }
+
+            if (totals.year.yearEstimate !== 0) {
+                totals.year.yearEstimateRate = (totals.year.yearActual / totals.year.yearEstimate * 100).toFixed(2);
+            }
+            if (totals.year.lastYearSamePeriod !== 0) {
+                totals.year.yearGrowthRate = (totals.year.yearGrowthAmount / totals.year.lastYearSamePeriod * 100).toFixed(2);
+            }
+            if (totals.year.yearTarget !== 0) {
+                totals.year.yearTargetRate = (totals.year.yearActual / totals.year.yearTarget * 100).toFixed(2);
+            }
+            
+            return totals;
+        }
+        
+        function createTotalRow(data, type) {
+            if (type === 'month') {
+                return `
+                    <tr class="total-row">
+                        <td class="store-name">總計</td>
+                        <td>${formatNumber(data.monthTarget)}</td>
+                        <td>${formatNumber(data.monthEstimate)}</td>
+                        <td>${formatNumber(data.monthActual)}</td>
+                        <td>${data.monthEstimateRate}%</td>
+                        <td class="${data.monthEstimateDiff >= 0 ? 'positive' : 'negative'}">${formatNumber(data.monthEstimateDiff)}</td>
+                        <td>${formatNumber(data.lastYearMonth)}</td>
+                        <td class="${parseFloat(data.monthGrowthRate) >= 0 ? 'positive' : 'negative'}">${data.monthGrowthRate}%</td>
+                        <td class="${data.monthGrowthAmount >= 0 ? 'positive' : 'negative'}">${formatNumber(data.monthGrowthAmount)}</td>
+                        <td>${data.monthTargetRate}%</td>
+                        <td class="${data.monthTargetDiff >= 0 ? 'positive' : 'negative'}">${formatNumber(data.monthTargetDiff)}</td>
+                    </tr>
+                `;
+            } else if (type === 'year') {
+                 return `
+                    <tr class="total-row">
+                        <td class="store-name">總計</td>
+                        <td>${formatNumber(data.yearTarget)}</td>
+                        <td>${formatNumber(data.yearEstimate)}</td>
+                        <td>${formatNumber(data.yearActual)}</td>
+                        <td>${data.yearEstimateRate}%</td>
+                        <td class="${data.yearEstimateDiff >= 0 ? 'positive' : 'negative'}">${formatNumber(data.yearEstimateDiff)}</td>
+                        <td>${formatNumber(data.lastYearSamePeriod)}</td>
+                        <td class="${parseFloat(data.yearGrowthRate) >= 0 ? 'positive' : 'negative'}">${data.yearGrowthRate}%</td>
+                        <td class="${data.yearGrowthAmount >= 0 ? 'positive' : 'negative'}">${formatNumber(data.yearGrowthAmount)}</td>
+                        <td>${data.yearTargetRate}%</td>
+                        <td class="${data.yearTargetDiff >= 0 ? 'positive' : 'negative'}">${formatNumber(data.yearTargetDiff)}</td>
+                    </tr>
+                `;
+            }
+            return '';
+        }
+
+        function formatNumber(num) {
+            if (num === undefined || num === null) return '0';
+            return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        function exportToExcel() {
+            let csv = '\ufeff店鋪銷售數據報表\n\n';
+            csv += '月份數據\n';
+            csv += '店名,月目標,預估業績,實績,預估達成率,預估差距,去年同期,成長比,成長金額,月計達成率,目標差距\n';
+            
+            const monthlyRows = document.querySelectorAll('#monthlyBody tr');
+            monthlyRows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                const rowData = Array.from(cells).map(cell => cell.textContent.trim());
+                csv += rowData.join(',') + '\n';
+            });
+
+            csv += '\n年度數據\n';
+            csv += '店名,年度目標,預估業績,實績,預估達成率,預估差距,同期實績,成長比,成長金額,月計達成率,目標差距\n';
+            
+            const yearlyRows = document.querySelectorAll('#yearlyBody tr');
+            yearlyRows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                const rowData = Array.from(cells).map(cell => cell.textContent.trim());
+                csv += rowData.join(',') + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = '店鋪銷售數據_' + new Date().toISOString().slice(0, 10) + '.csv';
+            link.click();
+        }
+    </script>
 </body>
 </html>
