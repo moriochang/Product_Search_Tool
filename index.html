@@ -228,7 +228,6 @@
             font-size: 2em;
             font-weight: 700;
             color: var(--color-text);
-            margin-bottom: 8px;
         }
 
         .kpi-change {
@@ -608,13 +607,16 @@
                 </div>
                 <div class="kpi-card success">
                     <div class="kpi-label">年總實績</div>
-                    <div class="kpi-value" id="kpiYearActual">-</div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div class="kpi-value" id="kpiYearActual">-</div>
+                        <div class="kpi-change positive" id="kpiYearChange" style="font-size: 1.2em; white-space: nowrap;">-</div>
+                    </div>
                 </div>
                 <div class="kpi-card success">
                     <div class="kpi-label">年達成率</div>
                     <div class="kpi-value" id="kpiYearRate">-</div>
                 </div>
-                <div class="kpi-card success">
+                <div class="kpi-card">
                     <div class="kpi-label">年成長率</div>
                     <div class="kpi-value" id="kpiYearGrowth">-</div>
                 </div>
@@ -633,14 +635,16 @@
                 </div>
                 <div class="kpi-card success">
                     <div class="kpi-label">月總實績</div>
-                    <div class="kpi-value" id="kpiMonthActual">-</div>
-                    <div class="kpi-change positive" id="kpiMonthChange">-</div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div class="kpi-value" id="kpiMonthActual">-</div>
+                        <div class="kpi-change positive" id="kpiMonthChange" style="font-size: 1.2em; white-space: nowrap;">-</div>
+                    </div>
                 </div>
                 <div class="kpi-card success">
                     <div class="kpi-label">月達成率</div>
                     <div class="kpi-value" id="kpiMonthRate">-</div>
                 </div>
-                <div class="kpi-card success">
+                <div class="kpi-card">
                     <div class="kpi-label">月成長率</div>
                     <div class="kpi-value" id="kpiMonthGrowth">-</div>
                 </div>
@@ -878,6 +882,11 @@
 
         // 顯示結果
         function displayResults(data, dates) {
+            // 更新日期顯示
+            if (dates.reportDate) {
+                updateTodayDate(dates.reportDate);
+            }
+            
             // 更新KPI
             updateKPI(data);
             
@@ -933,11 +942,12 @@
             document.getElementById('kpiMonthActual').textContent = formatNumber(totals.monthActual);
             document.getElementById('kpiMonthRate').textContent = monthRate + '%';
             document.getElementById('kpiMonthGrowth').textContent = monthGrowth + '%';
+            document.getElementById('kpiMonthGrowth').className = `kpi-value ${parseFloat(monthGrowth) >= 0 ? 'positive' : 'negative'}`;
             document.getElementById('kpiMonthDiff').textContent = formatNumber(monthDiff);
             document.getElementById('kpiMonthDiff').className = `kpi-value ${monthDiff >= 0 ? 'positive' : 'negative'}`;
             
             const changeEl = document.getElementById('kpiMonthChange');
-            changeEl.textContent = `${monthGrowth >= 0 ? '+' : ''}${monthGrowth}% ${monthGrowth >= 0 ? '↑' : '↓'}`;
+            changeEl.textContent = `${monthGrowth >= 0 ? '+' : ''}${monthGrowth}% ${monthGrowth >= 0 ? '▲' : '▼'}`;
             changeEl.className = `kpi-change ${monthGrowth >= 0 ? 'positive' : 'negative'}`;
 
             // 更新年度KPI
@@ -945,8 +955,13 @@
             document.getElementById('kpiYearActual').textContent = formatNumber(totals.yearActual);
             document.getElementById('kpiYearRate').textContent = yearRate + '%';
             document.getElementById('kpiYearGrowth').textContent = yearGrowth + '%';
+            document.getElementById('kpiYearGrowth').className = `kpi-value ${parseFloat(yearGrowth) >= 0 ? 'positive' : 'negative'}`;
             document.getElementById('kpiYearDiff').textContent = formatNumber(yearDiff);
             document.getElementById('kpiYearDiff').className = `kpi-value ${yearDiff >= 0 ? 'positive' : 'negative'}`;
+            
+            const yearChangeEl = document.getElementById('kpiYearChange');
+            yearChangeEl.textContent = `${yearGrowth >= 0 ? '+' : ''}${yearGrowth}% ${yearGrowth >= 0 ? '▲' : '▼'}`;
+            yearChangeEl.className = `kpi-change ${yearGrowth >= 0 ? 'positive' : 'negative'}`;
         }
 
         // 更新店鋪卡片
@@ -968,7 +983,7 @@
                     const monthDiff = parseFloat(d.monthActual) - parseFloat(d.monthTarget);
                     card.innerHTML = `
                         <div class="store-header">
-                            <div class="store-name">🏪 ${storeName}</div>
+                            <div class="store-name">${storeName}</div>
                             <div class="store-badge ${isSuccess ? 'success' : 'danger'}">
                                 ${isSuccess ? '✓ 達標' : '✗ 未達標'}
                             </div>
@@ -1247,12 +1262,23 @@
             link.click();
         }
 
-        // 更新日期顯示（FY26Q1W7 11/10格式）
-        function updateTodayDate() {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = today.getMonth() + 1; // 1-12
-            const date = today.getDate();
+        // 更新日期顯示（FY26Q1W7 11/7格式）
+        function updateTodayDate(reportDate) {
+            let targetDate, month, date;
+            
+            if (reportDate) {
+                // 使用報表日期
+                const parts = reportDate.split('/');
+                month = parseInt(parts[0]);
+                date = parseInt(parts[1]);
+                // 假設是2025年的日期
+                targetDate = new Date(2025, month - 1, date);
+            } else {
+                // 使用今天的日期
+                targetDate = new Date();
+                month = targetDate.getMonth() + 1;
+                date = targetDate.getDate();
+            }
             
             // FY26Q1的週數定義（實際對應表）
             const fy26q1Weeks = [
@@ -1271,10 +1297,10 @@
                 { week: 13, startDate: new Date(2025, 11, 21) }  // 2025/12/21
             ];
             
-            // 找出今天是第幾週
+            // 找出是第幾週
             let weekNumber = 1;
             for (let i = fy26q1Weeks.length - 1; i >= 0; i--) {
-                if (today >= fy26q1Weeks[i].startDate) {
+                if (targetDate >= fy26q1Weeks[i].startDate) {
                     weekNumber = fy26q1Weeks[i].week;
                     break;
                 }
@@ -1284,11 +1310,11 @@
             const dateStr = `${month}/${date}`;
             const fyStr = `FY26Q1W${weekNumber}`;
             
-            document.getElementById('todayDate').textContent = `📅  ${fyStr} ${dateStr}`;
+            document.getElementById('todayDate').textContent = `📅      ${fyStr} ${dateStr}`;
         }
 
-        // 初始化日期顯示
-        updateTodayDate();
+        // 初始化日期顯示（上傳報表後會更新為報表日期）
+        // updateTodayDate();
     </script>
 </body>
 </html>
